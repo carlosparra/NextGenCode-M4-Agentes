@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./**/.env)",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "allow": [
+      "Bash(uv run python -m verification *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run python \"$CLAUDE_PROJECT_DIR/hooks/permissions.py\""
+          }
+        ]
+      }
+    ]
+  }
+}

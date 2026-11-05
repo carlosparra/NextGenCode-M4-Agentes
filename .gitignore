@@ -1,0 +1,20 @@
+# Libros con derechos de autor: solo en la máquina del docente
+biblio/
+
+# Lo que generan los agentes y los generadores
+product/
+output/
+# Los productos de referencia del docente (plan B) sí se versionan
+!recetas_docente/referencia/*/product/
+recetas_docente/generador/build/
+recetas_docente/generador/capturas/.log*
+
+# Entornos y secretos
+.venv/
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+.DS_Store
