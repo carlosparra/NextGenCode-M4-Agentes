@@ -1,13 +1,11 @@
-# Libros con derechos de autor: solo en la máquina del docente
+# Solo en la máquina del docente: libros, manuales, presentaciones y generadores
 biblio/
+receta_estudiantes/
+recetas_docente/
 
 # Lo que generan los agentes y los generadores
 product/
 output/
-# Los productos de referencia del docente (plan B) sí se versionan
-!recetas_docente/referencia/*/product/
-recetas_docente/generador/build/
-recetas_docente/generador/capturas/.log*
 
 # Entornos y secretos
 .venv/

@@ -118,16 +118,14 @@ flowchart LR
 
 ## Cómo se usa este repositorio
 
-Este repositorio es del docente: tiene las cuatro fábricas terminadas y probadas, los manuales y las
-presentaciones. **Los alumnos no lo clonan.** Reproducen la fábrica paso a paso desde el manual de práctica de
+Este repositorio es del docente: tiene las cuatro fábricas terminadas y probadas. Los manuales, las
+presentaciones y sus generadores se guardan aparte y se entregan en PDF. **Los alumnos no lo clonan.** Reproducen la fábrica paso a paso desde el manual de práctica de
 cada sesión, como en el Módulo 3: la sesión 1 parte de una carpeta vacía y cada sesión copia la anterior y le
 agrega piezas.
 
 | Carpeta | Qué es |
 | --- | --- |
 | `sesion01/` a `sesion04/` | Las fábricas terminadas: lo que el alumno debe tener al final de cada sesión |
-| `receta_estudiantes/` | Manuales del alumno en PDF y Markdown (el código se copia del `.md`) |
-| `recetas_docente/` | Manuales del docente, presentaciones, productos de referencia (plan B) y generadores |
 | `QA.md` | Las reglas de calidad que siguen la fábrica y el producto |
 
 ## Correr una sesión (docente)
@@ -159,15 +157,10 @@ La primera vez, Claude Code pregunta **«Do you trust the files in this folder?�
 confianza, ignora los permisos del proyecto y los agentes no pueden correr las verificaciones. Dentro de Claude
 Code, escribe `/factory`.
 
-## Regenerar el material
-
-Los manuales y las presentaciones se generan del código de `sesion01` a `sesion04` y de salidas reales de la
-fábrica, así que nunca muestran algo que no existe. Ver `recetas_docente/generador/README.md`.
-
 ## Preguntas frecuentes
 
 **¿Por qué el producto no viene en las carpetas de las sesiones?** Porque lo construyen los agentes en clase. Si
-una corrida falla, el docente tiene el producto de referencia de cada sesión en `recetas_docente/referencia/`.
+una corrida falla, el docente tiene un producto de referencia de cada sesión, guardado aparte.
 
 **¿Gasta dinero?** No hay cobros aparte. La fábrica usa tu suscripción de Claude Code. El producto usa el plan
 gratuito de Cloudflare Workers AI, y con el modelo simulado no usa red ni cuota.
