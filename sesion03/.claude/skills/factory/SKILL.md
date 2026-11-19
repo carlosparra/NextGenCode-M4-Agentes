@@ -1,4 +1,5 @@
 ---
+name: factory
 description: >-
   La fábrica de la sesión 3 · architect → aprobación → qa-unit → [costs ∥
   qa-e2e] (supervisor) → unit, contract, qa, e2e, evaluate → qa-style →
