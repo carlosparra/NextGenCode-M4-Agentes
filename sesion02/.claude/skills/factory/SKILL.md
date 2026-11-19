@@ -1,4 +1,5 @@
 ---
+name: factory
 description: >-
   La fábrica de la sesión 2 · architect → aprobación → qa-unit → observability
   → verificación → qa-style (evaluador-optimizador, máx. 2) → pipeline y
