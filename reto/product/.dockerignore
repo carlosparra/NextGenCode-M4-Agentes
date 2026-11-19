@@ -1,0 +1,32 @@
+# Secretos: nunca entran a la imagen.
+.env
+.env.*
+!.env.example
+
+# Pruebas: no se necesitan para correr el producto.
+tests/
+e2e/
+
+# Cachés y entornos locales.
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.pylint.d/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.venv/
+venv/
+
+# Control de versiones, CI, documentos y utilidades fuera del contenedor.
+.git/
+.gitignore
+.github/
+doc/
+scripts/
+render.yaml
+Dockerfile
+.dockerignore

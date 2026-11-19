@@ -1,0 +1,26 @@
+# Secretos: .env nunca se versiona; .env.example sí.
+.env
+.env.*
+!.env.example
+
+# Entornos virtuales.
+.venv/
+venv/
+
+# Cachés de Python y de las herramientas.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.pylint.d/
+.mypy_cache/
+.ruff_cache/
+
+# Cobertura.
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Resultados de Playwright.
+test-results/
+playwright-report/
