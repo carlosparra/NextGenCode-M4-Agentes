@@ -5,6 +5,7 @@ recetas_docente/
 
 # Lo que generan los agentes y los generadores
 product/
+!reto/product/
 output/
 
 # Entornos y secretos

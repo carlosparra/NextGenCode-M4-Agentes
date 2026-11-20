@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HR Assistant</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 760px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      color: #222;
+    }
+    h1 { font-size: 1.5rem; }
+    #conversation {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 1rem;
+      min-height: 200px;
+      margin-bottom: 1rem;
+    }
+    .message { margin: 0 0 0.75rem; white-space: pre-wrap; }
+    .user { font-weight: bold; }
+    .assistant { color: #1a4d8f; }
+    .tools { font-size: 0.85rem; color: #666; }
+    .error { color: #b00020; }
+    .notice {
+      border: 1px solid #c9a227;
+      background: #fff8e1;
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      margin: 0 0 1rem;
+    }
+    form { display: flex; gap: 0.5rem; }
+    input { flex: 1; padding: 0.5rem; font-size: 1rem; }
+    button { padding: 0.5rem 1rem; font-size: 1rem; }
+    .key { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>HR Assistant</h1>
+  <div class="key">
+    <label for="api-key">Clave de acceso</label>
+    <input id="api-key" data-testid="api-key" type="password"
+           placeholder="Tu clave (se guarda solo en esta pestaña)"
+           autocomplete="off" spellcheck="false">
+  </div>
+  <div id="conversation" data-testid="answer" aria-live="polite"></div>
+  <p id="notice" class="notice" data-testid="notice" role="status" hidden></p>
+  <form id="ask-form">
+    <input id="question" data-testid="question" type="text"
+           placeholder="Pregunta por un empleado (EMP-0001) o un departamento"
+           autocomplete="off">
+    <button id="send" data-testid="send" type="submit">Enviar</button>
+  </form>
+  <script>
+    "use strict";
+    // El historial vive solo en el navegador; la API no guarda nada.
+    const history = [];
+    const conversation = document.getElementById("conversation");
+    const form = document.getElementById("ask-form");
+    const input = document.getElementById("question");
+    const button = document.getElementById("send");
+    const keyInput = document.getElementById("api-key");
+
+    // La clave vive solo en sessionStorage: se borra al cerrar la pestaña y
+    // nunca se escribe en el codigo de la pagina.
+    const KEY_STORAGE_NAME = "hr-assistant-api-key";
+    const INVALID_KEY_MESSAGE = "Clave inválida";
+
+    function readStoredKey() {
+      try {
+        return window.sessionStorage.getItem(KEY_STORAGE_NAME) || "";
+      } catch (error) {
+        return "";
+      }
+    }
+
+    function storeKey(value) {
+      try {
+        if (value) {
+          window.sessionStorage.setItem(KEY_STORAGE_NAME, value);
+        } else {
+          window.sessionStorage.removeItem(KEY_STORAGE_NAME);
+        }
+      } catch (error) {
+        // Sin sessionStorage la clave solo vive en el campo.
+      }
+    }
+
+    keyInput.value = readStoredKey();
+    keyInput.addEventListener("input", () => storeKey(keyInput.value.trim()));
+
+    // Mensaje para 429 con los segundos de Retry-After.
+    function rateLimitMessage(response) {
+      const seconds = parseInt(response.headers.get("Retry-After"), 10);
+      const wait = Number.isFinite(seconds) && seconds > 0 ? seconds : 60;
+      return "Demasiadas preguntas; espera " + wait + " segundos";
+    }
+
+    // Agrega un parrafo a la conversacion usando solo textContent.
+    function addLine(text, className) {
+      const line = document.createElement("p");
+      line.className = "message " + className;
+      line.textContent = text;
+      conversation.appendChild(line);
+      return line;
+    }
+
+    // Muestra el request_id para que la persona lo pase a soporte.
+    function addRequestId(requestId) {
+      if (requestId) {
+        const line = addLine("request_id (para soporte): " + requestId, "tools");
+        line.setAttribute("data-testid", "request-id");
+      }
+    }
+
+    // Muestra el modelo y el costo en dolares (6 decimales) si la API los envia.
+    function addCost(body) {
+      if (typeof body.model !== "string" || typeof body.cost_usd !== "number") {
+        return;
+      }
+      const text = "Modelo: " + body.model
+        + " · Costo: US$ " + body.cost_usd.toFixed(6);
+      const line = addLine(text, "tools");
+      line.setAttribute("data-testid", "cost");
+    }
+
+    // Mensaje para la persona cuando el modelo no responde (HTTP 502).
+    const UNAVAILABLE_MESSAGE =
+      "El modelo no está disponible en este momento. Intenta de nuevo.";
+
+    // Avisos de las guardas: datos sensibles ocultos y pregunta rechazada (400).
+    const notice = document.getElementById("notice");
+    const SENSITIVE_DATA_NOTICE = "Se ocultaron datos sensibles";
+    const REJECTED_NOTICE = "Pregunta rechazada";
+    const SENSITIVE_DATA_DETAIL = "sensitive data not allowed";
+
+    function showNotice(text) {
+      notice.textContent = text;
+      notice.hidden = false;
+    }
+
+    function clearNotice() {
+      notice.textContent = "";
+      notice.hidden = true;
+    }
+
+    // Texto del aviso para un 400 segun el motivo que da la API.
+    function rejectedMessage(errorBody) {
+      if (errorBody.detail === SENSITIVE_DATA_DETAIL) {
+        return REJECTED_NOTICE + ": no se permiten datos sensibles.";
+      }
+      return REJECTED_NOTICE + ": contiene instrucciones no permitidas.";
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const question = input.value.trim();
+      if (!question) {
+        addLine("Escribe una pregunta antes de enviar.", "error");
+        return;
+      }
+      addLine("Tú: " + question, "user");
+      clearNotice();
+      input.value = "";
+      button.disabled = true;
+      const apiKey = keyInput.value.trim();
+      storeKey(apiKey);
+      try {
+        const response = await fetch("/ask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": apiKey,
+          },
+          body: JSON.stringify({ question: question, history: history }),
+        });
+        // El id de la peticion llega en el encabezado de toda respuesta.
+        const headerId = response.headers.get("X-Request-ID");
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => ({}));
+          let reason;
+          if (response.status === 400) {
+            reason = rejectedMessage(errorBody);
+            showNotice(reason);
+          } else if (response.status === 401) {
+            reason = INVALID_KEY_MESSAGE;
+          } else if (response.status === 429) {
+            reason = rateLimitMessage(response);
+          } else if (response.status === 422) {
+            reason = "La pregunta no es válida (vacía o demasiado larga).";
+          } else if (response.status === 502) {
+            reason = UNAVAILABLE_MESSAGE;
+          } else {
+            reason = "El servidor respondió con un error ("
+              + response.status + ").";
+          }
+          addLine("Error: " + reason, "error");
+          addRequestId(errorBody.request_id || headerId);
+          return;
+        }
+        const body = await response.json();
+        addLine("Asistente: " + body.answer, "assistant");
+        if (Array.isArray(body.pii_detected) && body.pii_detected.length) {
+          showNotice(SENSITIVE_DATA_NOTICE + " (" + body.pii_detected.join(", ")
+            + ").");
+        }
+        const tools = body.tools_used.length
+          ? body.tools_used.join(", ")
+          : "ninguna";
+        addLine("Herramientas usadas: " + tools, "tools");
+        addCost(body);
+        addRequestId(body.request_id || headerId);
+        history.push({ role: "user", content: question });
+        history.push({ role: "assistant", content: body.answer });
+      } catch (error) {
+        addLine("Error: no se pudo conectar con el servidor.", "error");
+      } finally {
+        button.disabled = false;
+        input.focus();
+      }
+    });
+  </script>
+</body>
+</html>
