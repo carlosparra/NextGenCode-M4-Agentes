@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+python-dotenv
+pydantic
+httpx
+langsmith
+pytest
+pytest-bdd
+pytest-cov
+pytest-playwright
+pylint

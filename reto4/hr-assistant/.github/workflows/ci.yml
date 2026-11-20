@@ -1,0 +1,103 @@
+# Pipeline de CI del HR Assistant (spec/04-production.md, punto 6).
+# Cuatro etapas encadenadas con needs: style -> unit -> e2e -> docker.
+# Render publica solo si este pipeline pasa (autoDeployTrigger: checksPass).
+name: ci
+
+on:
+  push:
+  pull_request:
+
+# El pipeline solo lee el repositorio
+permissions:
+  contents: read
+
+# Una corrida nueva en la misma rama cancela la anterior
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  style:
+    name: style (pylint, 88 columnas)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+      - name: pylint
+        run: >-
+          python -m pylint app tests scripts
+          --max-line-length=88
+          --fail-under=10
+          --disable=missing-function-docstring,redefined-outer-name,too-few-public-methods
+
+  unit:
+    name: unit (pruebas y BDD, cobertura 80 %)
+    needs: style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+      - name: pytest con cobertura
+        run: python -m pytest tests -q --cov=app --cov-fail-under=80
+
+  e2e:
+    name: e2e (Playwright, modelo simulado)
+    needs: unit
+    runs-on: ubuntu-latest
+    env:
+      # Clave de ejemplo solo para esta corrida con el modelo simulado: no es un secreto
+      CI_TEST_KEY: ci-test-key-not-a-secret-0001
+      E2E_PORT: "8000"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+      - name: Instalar Chromium para Playwright
+        run: python -m playwright install --with-deps chromium
+      - name: Arrancar el producto con el modelo simulado
+        env:
+          MODEL_PROVIDER: fake
+          API_KEYS: ci:${{ env.CI_TEST_KEY }}
+          RATE_LIMIT_PER_MINUTE: "1000"
+        run: |
+          nohup python -m uvicorn app.main:app --port "$E2E_PORT" > uvicorn.log 2>&1 &
+          for attempt in $(seq 1 40); do
+            if curl --silent --fail "http://127.0.0.1:$E2E_PORT/health" > /dev/null; then
+              echo "El producto responde en el puerto $E2E_PORT"
+              exit 0
+            fi
+            sleep 0.5
+          done
+          echo "El producto no arrancó"
+          cat uvicorn.log
+          exit 1
+      - name: Pruebas de punta a punta
+        env:
+          E2E_API_KEY: ${{ env.CI_TEST_KEY }}
+        run: python -m pytest e2e -q --base-url "http://127.0.0.1:$E2E_PORT"
+      - name: Log del producto si algo falla
+        if: failure()
+        run: cat uvicorn.log || true
+
+  docker:
+    name: docker (build de la imagen)
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: docker build
+        run: docker build --tag hr-assistant-alb:ci .

@@ -1,0 +1,33 @@
+# Lo que nunca entra en la imagen (spec/04-production.md, punto 5)
+
+# Secretos y configuración local
+.env
+.env.*
+!.env.example
+
+# Pruebas: la imagen solo corre el producto
+tests/
+e2e/
+
+# Cachés y entornos locales
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.pylint.d/
+.coverage
+.coverage.*
+htmlcov/
+.venv/
+venv/
+
+# Control de versiones, CI y archivos que no se ejecutan
+.git/
+.github/
+.gitignore
+.dockerignore
+Dockerfile
+render.yaml
+scripts/
+doc/

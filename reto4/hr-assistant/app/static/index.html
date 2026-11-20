@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HR Assistant</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f4f5f7; }
+    main { max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.4rem; }
+    #conversation { list-style: none; padding: 0; }
+    .turn { background: #fff; border-radius: 6px; padding: 0.75rem;
+            margin-bottom: 0.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .question { font-weight: bold; }
+    .tools { color: #555; font-size: 0.85rem; }
+    .request-id { color: #777; font-size: 0.75rem; font-family: monospace; }
+    .error { color: #b00020; }
+    form { display: flex; gap: 0.5rem; }
+    input { flex: 1; padding: 0.5rem; font-size: 1rem; }
+    button { padding: 0.5rem 1rem; font-size: 1rem; }
+    .key { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Asistente de Recursos Humanos</h1>
+    <div class="key">
+      <label for="api-key">Clave de acceso</label>
+      <input id="api-key" data-testid="api-key" type="password"
+             autocomplete="off" placeholder="Tu clave de cliente">
+    </div>
+    <ul id="conversation" data-testid="answer" aria-live="polite"></ul>
+    <form id="ask-form">
+      <input id="question" data-testid="question" type="text"
+             placeholder="Por ejemplo: ¿Quién es EMP-0004?" autocomplete="off">
+      <button id="send" data-testid="send" type="submit">Enviar</button>
+    </form>
+  </main>
+  <script>
+    // El historial vive solo en la memoria del navegador (la API no guarda nada).
+    const history = [];
+    const form = document.getElementById("ask-form");
+    const input = document.getElementById("question");
+    const button = document.getElementById("send");
+    const conversation = document.getElementById("conversation");
+    const keyInput = document.getElementById("api-key");
+    // La clave vive solo en sessionStorage: se borra al cerrar la pestaña y
+    // nunca se escribe en la página ni en el log.
+    const KEY_STORAGE = "hr-assistant-api-key";
+
+    keyInput.value = sessionStorage.getItem(KEY_STORAGE) || "";
+    keyInput.addEventListener("input", () => {
+      sessionStorage.setItem(KEY_STORAGE, keyInput.value.trim());
+    });
+
+    // Agrega una linea de texto a un elemento usando siempre textContent.
+    function addLine(parent, className, text) {
+      const line = document.createElement("div");
+      line.className = className;
+      line.textContent = text;
+      parent.appendChild(line);
+    }
+
+    function errorMessage(response) {
+      if (response.status === 401) {
+        return "Clave inválida";
+      }
+      if (response.status === 429) {
+        const seconds = response.headers.get("Retry-After") || "60";
+        return "Demasiadas preguntas; espera " + seconds + " segundos";
+      }
+      if (response.status === 422) {
+        return "La pregunta no es válida: está vacía o es demasiado larga.";
+      }
+      return "Ocurrió un error al consultar al asistente. Intenta de nuevo.";
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const question = input.value.trim();
+      const turn = document.createElement("li");
+      turn.className = "turn";
+      addLine(turn, "question", question || "(pregunta vacía)");
+      conversation.appendChild(turn);
+      button.disabled = true;
+      try {
+        const apiKey = keyInput.value.trim();
+        sessionStorage.setItem(KEY_STORAGE, apiKey);
+        const response = await fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
+          body: JSON.stringify({ question: question, history: history }),
+        });
+        // El id de la petición viene en el encabezado X-Request-ID de toda respuesta.
+        const requestId = response.headers.get("X-Request-ID");
+        if (!response.ok) {
+          addLine(turn, "error", errorMessage(response));
+          if (requestId) {
+            addLine(turn, "request-id", "ID de la petición: " + requestId);
+          }
+          return;
+        }
+        const body = await response.json();
+        addLine(turn, "answer", body.answer);
+        const used = body.tools_used;
+        const tools = used.length ? used.join(", ") : "ninguna";
+        addLine(turn, "tools", "Herramientas usadas: " + tools);
+        addLine(turn, "request-id", "ID de la petición: " + (body.request_id || requestId));
+        history.push({ role: "user", content: question });
+        history.push({ role: "assistant", content: body.answer });
+        input.value = "";
+      } catch (error) {
+        addLine(turn, "error", "No se pudo conectar con el asistente.");
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

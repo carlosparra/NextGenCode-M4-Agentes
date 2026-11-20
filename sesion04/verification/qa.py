@@ -34,7 +34,9 @@ def problems(product: Path) -> list[str]:
     :rtype: list[str]
     """
     found = []
-    for path in sorted(product.rglob("*")):
+    # Orden por la ruta como texto: en Windows ``sorted`` de rutas ignora mayúsculas
+    paths = sorted(product.rglob("*"), key=lambda p: p.relative_to(product).as_posix())
+    for path in paths:
         relative = path.relative_to(product).as_posix()
         is_text = path.suffix in {".py", ".md", ".html"}
         if is_text and has_emoji(path.read_text("utf-8")):

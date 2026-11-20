@@ -1,0 +1,36 @@
+# Blueprint de Render del HR Assistant (spec/04-production.md, punto 7).
+# El servicio se llama igual que el repositorio para no pisar otro servicio de la cuenta.
+# Los secretos llevan sync: false: Render los pide al crear el Blueprint y nunca
+# se escriben en este archivo ni en el repositorio.
+services:
+  - type: web
+    name: hr-assistant-alb
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    # Render publica solo cuando el pipeline de CI pasa
+    autoDeployTrigger: checksPass
+    envVars:
+      # Con production se aplican las reglas de compliance al arrancar
+      - key: ENVIRONMENT
+        value: production
+      - key: MODEL_PROVIDER
+        value: gateway
+      - key: CF_GATEWAY_ID
+        value: default
+      # Las trazas, si se encienden, nunca mandan preguntas ni respuestas
+      - key: HIDE_INPUTS
+        value: "true"
+      - key: HIDE_OUTPUTS
+        value: "true"
+      # Secretos: se escriben en Render > Environment
+      - key: API_KEYS
+        sync: false
+      - key: CF_ACCOUNT_ID
+        sync: false
+      - key: CF_API_TOKEN
+        sync: false
+      # LANGSMITH_API_KEY es opcional y no va aquí: se agrega en Render > Environment
+      # solo si se encienden las trazas (Render exige valor para cada sync: false).
