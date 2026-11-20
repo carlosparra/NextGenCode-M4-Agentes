@@ -1,0 +1,32 @@
+[
+  {
+    "topic": "vacaciones",
+    "keywords": ["vacaciones", "dias libres", "descanso anual"],
+    "text": "Vacaciones: el primer año de servicio corresponden 12 días hábiles; a partir del segundo año se suman 2 días por año hasta llegar a 20, y después 2 días más por cada 5 años. Se solicitan con al menos 15 días naturales de anticipación."
+  },
+  {
+    "topic": "prima vacacional",
+    "keywords": ["prima vacacional", "prima de vacaciones"],
+    "text": "Prima vacacional: se paga el 25 % del salario correspondiente a los días de vacaciones, junto con el primer pago después de tomarlas."
+  },
+  {
+    "topic": "aguinaldo",
+    "keywords": ["aguinaldo"],
+    "text": "Aguinaldo: 15 días de salario, pagados a más tardar el 20 de diciembre. Si no se trabajó el año completo, se paga la parte proporcional."
+  },
+  {
+    "topic": "home office",
+    "keywords": ["home office", "trabajo remoto", "teletrabajo", "trabajo desde casa"],
+    "text": "Home office: hasta 2 días por semana, acordados con el líder del equipo. El equipo de cómputo lo da la empresa y la conexión se apoya con 500 pesos al mes."
+  },
+  {
+    "topic": "permisos",
+    "keywords": ["permiso", "permisos", "paternidad", "maternidad"],
+    "text": "Permisos: maternidad de 84 días y paternidad de 5 días laborables, ambos con goce de sueldo. Hasta 3 días al año por asuntos personales con aviso previo al líder."
+  },
+  {
+    "topic": "horario",
+    "keywords": ["horario", "jornada", "hora de entrada", "hora de salida"],
+    "text": "Horario: jornada de 40 horas a la semana, de lunes a viernes. La entrada es flexible entre las 8 y las 10 de la mañana."
+  }
+]

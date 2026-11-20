@@ -1,0 +1,33 @@
+# Lo que nunca entra en la imagen (spec/04-production.md, punto 5)
+
+# Secretos y configuración local
+.env
+.env.*
+
+# Pruebas: no se ejecutan en producción
+tests/
+e2e/
+
+# Cachés y artefactos de Python y de las pruebas
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Repositorio, CI, documentos y herramientas que la imagen no usa
+.git/
+.github/
+.gitignore
+.dockerignore
+Dockerfile
+render.yaml
+doc/
+scripts/

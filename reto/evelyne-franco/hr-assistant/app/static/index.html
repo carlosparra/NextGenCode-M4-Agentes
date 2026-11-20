@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Assistant</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 640px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+        }
+        h1 { margin-bottom: 1rem; }
+        .input-row {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 1rem;
+        }
+        #question {
+            flex: 1;
+            padding: .5rem;
+            font-size: 1rem;
+            border: 1px solid #999;
+            border-radius: 4px;
+        }
+        #api-key {
+            flex: 1;
+            padding: .5rem;
+            font-size: 1rem;
+            border: 1px solid #999;
+            border-radius: 4px;
+        }
+        .key-label { align-self: center; }
+        #send {
+            padding: .5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background: #0057b7;
+            color: #fff;
+        }
+        #send:hover { background: #004090; }
+        #answer {
+            white-space: pre-wrap;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 1rem;
+            min-height: 4rem;
+            background: #fafafa;
+        }
+        .tools { color: #666; font-size: .85rem; margin-top: .5rem; }
+        .error { color: #c00; }
+        #conversation { margin-bottom: 1rem; }
+        .turn { margin-bottom: .75rem; }
+        .turn-question { font-weight: bold; }
+        .turn-answer { white-space: pre-wrap; }
+        .turn-meta { color: #666; font-size: .85rem; }
+    </style>
+</head>
+<body>
+    <h1>HR Assistant</h1>
+    <div class="input-row">
+        <label for="api-key" class="key-label">Clave de acceso</label>
+        <input
+            id="api-key"
+            data-testid="api-key"
+            type="password"
+            autocomplete="off"
+            placeholder="Escribe tu clave..."
+        />
+    </div>
+    <div id="conversation" data-testid="conversation"></div>
+    <div class="input-row">
+        <input
+            id="question"
+            data-testid="question"
+            type="text"
+            placeholder="Escribe tu pregunta..."
+        />
+        <button
+            id="send"
+            data-testid="send"
+        >Enviar</button>
+    </div>
+    <div id="answer" data-testid="answer"></div>
+    <div id="tools" class="tools"></div>
+    <div id="meta" data-testid="meta" class="tools"></div>
+    <div id="request-id" data-testid="request-id" class="tools"></div>
+
+    <script>
+        (function () {
+            var history = [];
+            var questionEl = document.getElementById("question");
+            var sendEl = document.getElementById("send");
+            var answerEl = document.getElementById("answer");
+            var toolsEl = document.getElementById("tools");
+            var metaEl = document.getElementById("meta");
+            var requestIdEl = document.getElementById("request-id");
+            var conversationEl = document.getElementById("conversation");
+            var apiKeyEl = document.getElementById("api-key");
+            // La clave solo vive en sessionStorage (se borra al cerrar la
+            // pestana) y en el encabezado X-API-Key; nunca en la URL.
+            var KEY_STORAGE_NAME = "hr-assistant-api-key";
+            var INVALID_KEY_TEXT = "Clave inválida";
+
+            function readStoredKey() {
+                try {
+                    return window.sessionStorage.getItem(KEY_STORAGE_NAME) || "";
+                } catch (e) {
+                    return "";
+                }
+            }
+
+            function storeKey(value) {
+                try {
+                    if (value) {
+                        window.sessionStorage.setItem(KEY_STORAGE_NAME, value);
+                    } else {
+                        window.sessionStorage.removeItem(KEY_STORAGE_NAME);
+                    }
+                } catch (e) {
+                    // Sin sessionStorage la clave solo queda en el campo.
+                }
+            }
+
+            apiKeyEl.value = readStoredKey();
+            apiKeyEl.addEventListener("input", function () {
+                storeKey(apiKeyEl.value.trim());
+            });
+
+            // Mensaje en espanol para una respuesta que no fue 200.
+            function errorTextFor(reply, fallback) {
+                if (reply.status === 401) {
+                    return INVALID_KEY_TEXT;
+                }
+                if (reply.status === 429) {
+                    var seconds = parseInt(reply.retryAfter, 10);
+                    if (!(seconds > 0)) {
+                        seconds = 1;
+                    }
+                    return "Demasiadas preguntas; espera " + seconds +
+                        " segundos";
+                }
+                return fallback;
+            }
+
+            // Muestra el request_id para que la persona lo pase a soporte.
+            function showRequestId(requestId) {
+                requestIdEl.textContent = requestId
+                    ? "Id de petición: " + requestId
+                    : "";
+            }
+
+            // Arma el texto con el modelo y el costo de una respuesta.
+            function formatMeta(data) {
+                var parts = [];
+                if (data.model) {
+                    parts.push("Modelo: " + data.model);
+                }
+                if (typeof data.cost_usd === "number") {
+                    parts.push("Costo: " + data.cost_usd + " USD");
+                }
+                return parts.join(" | ");
+            }
+
+            // Agrega una pregunta al historial visible y devuelve su turno.
+            function addQuestionTurn(text) {
+                var turn = document.createElement("div");
+                turn.className = "turn";
+                var qEl = document.createElement("div");
+                qEl.className = "turn-question";
+                qEl.textContent = "Tú: " + text;
+                turn.appendChild(qEl);
+                conversationEl.appendChild(turn);
+                return turn;
+            }
+
+            // Agrega la respuesta (y su modelo y costo) a un turno del historial.
+            function addAnswerToTurn(turn, text, meta, isError) {
+                var aEl = document.createElement("div");
+                aEl.className = isError ? "turn-answer error" : "turn-answer";
+                aEl.textContent = "Asistente: " + text;
+                turn.appendChild(aEl);
+                if (meta) {
+                    var mEl = document.createElement("div");
+                    mEl.className = "turn-meta";
+                    mEl.textContent = meta;
+                    turn.appendChild(mEl);
+                }
+            }
+
+            function sendQuestion() {
+                var q = questionEl.value.trim();
+                if (!q) {
+                    answerEl.textContent =
+                        "Error: escribe una pregunta antes de enviar.";
+                    answerEl.className = "error";
+                    toolsEl.textContent = "";
+                    metaEl.textContent = "";
+                    return;
+                }
+
+                sendEl.disabled = true;
+                answerEl.className = "";
+                answerEl.textContent = "Pensando...";
+                toolsEl.textContent = "";
+                metaEl.textContent = "";
+                showRequestId("");
+                var turn = addQuestionTurn(q);
+                var errorText = "Ocurrió un error. Intenta de nuevo.";
+
+                var payload = { question: q, history: history };
+                var apiKey = apiKeyEl.value.trim();
+                storeKey(apiKey);
+
+                fetch("/ask", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-API-Key": apiKey
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(function (res) {
+                    var headerId = res.headers.get("X-Request-ID");
+                    var retryAfter = res.headers.get("Retry-After");
+                    return res.json()
+                        .catch(function () { return {}; })
+                        .then(function (data) {
+                            return {
+                                ok: res.ok,
+                                status: res.status,
+                                retryAfter: retryAfter,
+                                data: data,
+                                id: headerId
+                            };
+                        });
+                })
+                .then(function (reply) {
+                    var data = reply.data || {};
+                    showRequestId(data.request_id || reply.id);
+                    if (!reply.ok) {
+                        var message = errorTextFor(reply, errorText);
+                        answerEl.className = "error";
+                        answerEl.textContent = message;
+                        addAnswerToTurn(turn, message, "", true);
+                        return;
+                    }
+                    var meta = formatMeta(data);
+                    answerEl.textContent = data.answer;
+                    metaEl.textContent = meta;
+                    addAnswerToTurn(turn, data.answer, meta, false);
+                    if (data.tools_used && data.tools_used.length) {
+                        toolsEl.textContent =
+                            "Herramientas: " +
+                            data.tools_used.join(", ");
+                    }
+                    history.push({ role: "user", content: q });
+                    history.push({
+                        role: "assistant",
+                        content: data.answer
+                    });
+                    questionEl.value = "";
+                })
+                .catch(function () {
+                    answerEl.className = "error";
+                    answerEl.textContent = errorText;
+                    addAnswerToTurn(turn, errorText, "", true);
+                })
+                .finally(function () {
+                    sendEl.disabled = false;
+                });
+            }
+
+            sendEl.addEventListener("click", sendQuestion);
+            questionEl.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") sendQuestion();
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+# Secretos: nunca se suben al repositorio
+.env
+.env.*
+!.env.example
+
+# Entornos virtuales
+.venv/
+venv/
+
+# Cachés de Python y de las herramientas
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Cobertura
+.coverage
+.coverage.*
+htmlcov/
+
+# Resultados de Playwright
+test-results/
+playwright-report/
+
+# Log del servidor que arranca el CI
+uvicorn.log

@@ -1,0 +1,37 @@
+# Blueprint de Render para el HR Assistant (spec/04-production.md, punto 7).
+# El servicio se llama igual que el repositorio para no pisar otro servicio de la cuenta.
+services:
+  - type: web
+    name: hr-assistant
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    # Render publica solo cuando el pipeline de CI pasa
+    autoDeployTrigger: checksPass
+    envVars:
+      # Configuración pública: con production se aplican las reglas de compliance
+      - key: ENVIRONMENT
+        value: production
+      - key: MODEL_PROVIDER
+        value: gateway
+      - key: HIDE_INPUTS
+        value: "true"
+      - key: HIDE_OUTPUTS
+        value: "true"
+      - key: LANGSMITH_TRACING
+        value: "false"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "30"
+      # Nombre del gateway en Cloudflare; si el tuyo se llama distinto, cámbialo en Render
+      - key: CF_GATEWAY_ID
+        value: default
+      # Secretos: se escriben en Render al crear el Blueprint, nunca en el repositorio.
+      # LANGSMITH_API_KEY es opcional: se agrega en Render > Environment si se encienden las trazas.
+      - key: API_KEYS
+        sync: false
+      - key: CF_ACCOUNT_ID
+        sync: false
+      - key: CF_API_TOKEN
+        sync: false
