@@ -1,51 +1,11 @@
 """Pruebas de las trazas opcionales de LangSmith, sin red."""
 
 import sys
-import types
 
-from conftest import build_client
+from conftest import RecordingTracer, build_client, langsmith_settings
 
 from app.config import load_settings
 from app.tracing import NoopTracer, build_tracer
-
-
-class RecordingTracer:  # pylint: disable=too-few-public-methods
-    """Trazador doble que anota cada funcion que se le pide trazar."""
-
-    def __init__(self):
-        self.spans = []
-
-    def trace(self, func, **options):
-        """Anota las opciones y devuelve la funcion sin cambios.
-
-        :param func: Funcion a trazar
-        :type func: callable
-        :param options: ``name``, ``request_id`` y lo que agregue el producto
-        :type options: dict
-        :return: La misma funcion
-        :rtype: callable
-        """
-        self.spans.append(options)
-        return func
-
-
-def fake_langsmith_module(recorded):
-    """Modulo ``langsmith`` falso que registra cliente y decoradores."""
-    module = types.ModuleType("langsmith")
-
-    class Client:  # pylint: disable=too-few-public-methods
-        """Cliente falso: guarda sus argumentos y no se conecta."""
-
-        def __init__(self, **kwargs):
-            recorded["client"] = kwargs
-
-    def traceable(*_args, **kwargs):
-        recorded.setdefault("traceable", []).append(kwargs)
-        return lambda func: func
-
-    module.Client = Client
-    module.traceable = traceable
-    return module
 
 
 def test_tracing_is_off_without_an_api_key(employees_file, monkeypatch):
@@ -68,14 +28,7 @@ def test_langsmith_tracer_hides_content_and_tags_the_request_id(
     employees_file, monkeypatch
 ):
     recorded = {}
-    monkeypatch.setitem(sys.modules, "langsmith", fake_langsmith_module(recorded))
-    settings = load_settings(
-        {
-            "EMPLOYEES_PATH": str(employees_file),
-            "LANGSMITH_TRACING": "true",
-            "LANGSMITH_API_KEY": "lsv2-test-key",
-        }
-    )
+    settings = langsmith_settings(employees_file, monkeypatch, recorded)
 
     traced = build_tracer(settings).trace(
         lambda: 42, name="agent_run", request_id="r-7"

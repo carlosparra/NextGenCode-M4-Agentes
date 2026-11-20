@@ -11,6 +11,7 @@ from conftest import (
     TEST_API_KEY,
     TEST_API_KEYS,
     ManualClock,
+    RecordingTracer,
     read_log,
 )
 from app.config import ConfigError
@@ -39,26 +40,6 @@ UNSAFE_CHANGES = {
         "HIDE_OUTPUTS": "false",
     },
 }
-
-
-class RecordingTracer:  # pylint: disable=too-few-public-methods
-    """Trazador doble que anota las opciones de cada traza."""
-
-    def __init__(self):
-        self.spans = []
-
-    def trace(self, func, **options):
-        """Anota las opciones y devuelve la funcion sin cambios.
-
-        :param func: Funcion a trazar
-        :type func: callable
-        :param options: ``name``, ``request_id``, ``client``...
-        :type options: dict
-        :return: La misma funcion
-        :rtype: callable
-        """
-        self.spans.append(options)
-        return func
 
 
 @pytest.fixture

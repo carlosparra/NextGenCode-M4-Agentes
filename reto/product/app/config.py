@@ -2,8 +2,8 @@
 
 La configuracion se valida al arrancar: un valor invalido lanza ``ConfigError``
 con el nombre de la variable y el valor recibido, y la aplicacion no arranca.
-Los valores secretos (``CF_API_TOKEN`` y las claves de ``API_KEYS``) nunca
-aparecen en mensajes ni en ``repr``.
+Los valores secretos (``CF_API_TOKEN``, ``CF_AIG_TOKEN`` y las claves de
+``API_KEYS``) nunca aparecen en mensajes ni en ``repr``.
 """
 
 from collections.abc import Mapping
@@ -42,6 +42,14 @@ DEFAULT_MODEL_MAX_TOKENS = "300"
 DEFAULT_MODEL_TEMPERATURE = "0"
 DEFAULT_CACHE_TTL_SECONDS = "0"
 DEFAULT_PRICES_PATH = "data/model_prices.json"
+DEFAULT_APP_VERSION = "1.0.0"
+DEFAULT_RESPONSE_CACHE_TTL_SECONDS = "0"
+DEFAULT_RESPONSE_CACHE_SIZE = "256"
+PII_POLICY_MASK = "mask"
+PII_POLICY_BLOCK = "block"
+SUPPORTED_PII_POLICIES = (PII_POLICY_MASK, PII_POLICY_BLOCK)
+DEFAULT_PII_POLICY = PII_POLICY_MASK
+DEFAULT_MAX_ANSWER_CHARS = "2000"
 MIN_TEMPERATURE = 0.0
 MAX_TEMPERATURE = 2.0
 CLOUDFLARE_VARIABLES = ("CF_ACCOUNT_ID", "CF_GATEWAY_ID", "CF_API_TOKEN")
@@ -79,6 +87,9 @@ class Settings:  # pylint: disable=too-many-instance-attributes
     :type cf_gateway_id: str
     :param cf_api_token: Token de Cloudflare (secreto; no sale en ``repr``)
     :type cf_api_token: str
+    :param cf_aig_token: Token del AI Gateway autenticado (opcional y secreto;
+        no sale en ``repr``). Vacio: no se manda ``cf-aig-authorization``
+    :type cf_aig_token: str
     :param model_small: Modelo barato
     :type model_small: str
     :param model_large: Modelo capaz
@@ -104,6 +115,17 @@ class Settings:  # pylint: disable=too-many-instance-attributes
     :type api_keys: tuple[app.auth.ApiKey, ...]
     :param rate_limit_per_minute: Peticiones por cliente por minuto
     :type rate_limit_per_minute: int
+    :param app_version: Version en ``/health`` y en OpenAPI
+    :type app_version: str
+    :param response_cache_ttl_seconds: TTL de la cache de respuestas (0:
+        apagada)
+    :type response_cache_ttl_seconds: int
+    :param response_cache_size: Entradas maximas de la cache de respuestas
+    :type response_cache_size: int
+    :param pii_policy: Politica de datos sensibles: ``mask`` o ``block``
+    :type pii_policy: str
+    :param max_answer_chars: Largo maximo de la respuesta
+    :type max_answer_chars: int
     """
 
     model_provider: str
@@ -119,6 +141,7 @@ class Settings:  # pylint: disable=too-many-instance-attributes
     cf_account_id: str = ""
     cf_gateway_id: str = DEFAULT_CF_GATEWAY_ID
     cf_api_token: str = field(default="", repr=False)
+    cf_aig_token: str = field(default="", repr=False)
     model_small: str = DEFAULT_MODEL_SMALL
     model_large: str = DEFAULT_MODEL_LARGE
     routing: bool = True
@@ -131,6 +154,11 @@ class Settings:  # pylint: disable=too-many-instance-attributes
     environment: str = DEFAULT_ENVIRONMENT
     api_keys: tuple = field(default=(), repr=False)
     rate_limit_per_minute: int = int(DEFAULT_RATE_LIMIT_PER_MINUTE)
+    app_version: str = DEFAULT_APP_VERSION
+    response_cache_ttl_seconds: int = int(DEFAULT_RESPONSE_CACHE_TTL_SECONDS)
+    response_cache_size: int = int(DEFAULT_RESPONSE_CACHE_SIZE)
+    pii_policy: str = DEFAULT_PII_POLICY
+    max_answer_chars: int = int(DEFAULT_MAX_ANSWER_CHARS)
 
 
 def _int_at_least(
@@ -276,16 +304,19 @@ def _employees_path(env: Mapping[str, str]) -> Path:
 def _cloudflare(env: Mapping[str, str], provider: str) -> dict:
     """Lee las variables ``CF_*``; con ``gateway`` ninguna puede faltar.
 
-    Los mensajes de error nombran la variable, nunca su valor (el token es
-    secreto).
+    ``CF_AIG_TOKEN`` es opcional siempre: solo hace falta si el AI Gateway
+    tiene encendido "Authenticated Gateway". Los mensajes de error nombran la
+    variable, nunca su valor (los tokens son secretos).
 
     :param env: Variables de entorno
     :type env: Mapping[str, str]
     :param provider: Proveedor ya validado
     :type provider: str
-    :return: ``cf_account_id``, ``cf_gateway_id`` y ``cf_api_token``
+    :return: ``cf_account_id``, ``cf_gateway_id``, ``cf_api_token`` y
+        ``cf_aig_token``
     :rtype: dict[str, str]
     :raises ConfigError: Si el proveedor es ``gateway`` y falta alguna
+        obligatoria
     """
     defaults = {"CF_GATEWAY_ID": DEFAULT_CF_GATEWAY_ID}
     values = {}
@@ -296,6 +327,7 @@ def _cloudflare(env: Mapping[str, str], provider: str) -> dict:
                 f"{name} must not be empty when MODEL_PROVIDER={PROVIDER_GATEWAY}"
             )
         values[name.lower()] = value
+    values["cf_aig_token"] = str(env.get("CF_AIG_TOKEN", "")).strip()
     return values
 
 
@@ -439,6 +471,63 @@ def _access(env: Mapping[str, str]) -> dict:
     }
 
 
+def _app_version(env: Mapping[str, str]) -> str:
+    """Lee ``APP_VERSION`` y rechaza valores vacios.
+
+    :param env: Variables de entorno
+    :type env: Mapping[str, str]
+    :return: Version sin espacios a los lados
+    :rtype: str
+    :raises ConfigError: Si la version esta vacia
+    """
+    version = str(env.get("APP_VERSION", DEFAULT_APP_VERSION)).strip()
+    if not version:
+        raise ConfigError("APP_VERSION must not be empty")
+    return version
+
+
+def _pii_policy(env: Mapping[str, str]) -> str:
+    """Lee y valida ``PII_POLICY``.
+
+    :param env: Variables de entorno
+    :type env: Mapping[str, str]
+    :return: ``mask`` o ``block``
+    :rtype: str
+    :raises ConfigError: Si el valor no es una politica soportada
+    """
+    raw = env.get("PII_POLICY", DEFAULT_PII_POLICY)
+    policy = str(raw).strip().lower()
+    if policy not in SUPPORTED_PII_POLICIES:
+        supported = ", ".join(SUPPORTED_PII_POLICIES)
+        raise ConfigError(f"PII_POLICY must be one of: {supported}; got {raw!r}")
+    return policy
+
+
+def _operations(env: Mapping[str, str]) -> dict:
+    """Lee la version, la cache de respuestas y las guardas del reto.
+
+    :param env: Variables de entorno
+    :type env: Mapping[str, str]
+    :return: ``app_version``, ``response_cache_ttl_seconds``,
+        ``response_cache_size``, ``pii_policy`` y ``max_answer_chars``
+    :rtype: dict
+    :raises ConfigError: Si algun valor es invalido
+    """
+    return {
+        "app_version": _app_version(env),
+        "response_cache_ttl_seconds": _non_negative_int(
+            env, "RESPONSE_CACHE_TTL_SECONDS", DEFAULT_RESPONSE_CACHE_TTL_SECONDS
+        ),
+        "response_cache_size": _positive_int(
+            env, "RESPONSE_CACHE_SIZE", DEFAULT_RESPONSE_CACHE_SIZE
+        ),
+        "pii_policy": _pii_policy(env),
+        "max_answer_chars": _positive_int(
+            env, "MAX_ANSWER_CHARS", DEFAULT_MAX_ANSWER_CHARS
+        ),
+    }
+
+
 def load_settings(env: Mapping[str, str]) -> Settings:
     """Construye y valida la configuracion a partir de un mapeo de variables.
 
@@ -471,4 +560,5 @@ def load_settings(env: Mapping[str, str]) -> Settings:
         **_models(env, prices_path),
         **_cost_levers(env),
         **_access(env),
+        **_operations(env),
     )

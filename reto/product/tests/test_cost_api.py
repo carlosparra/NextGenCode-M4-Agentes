@@ -9,11 +9,11 @@ from conftest import (
     BASE_FIELDS,
     LARGE_MODEL,
     SMALL_MODEL,
+    build_default_app,
     gateway_client,
     keyed_client,
     read_log,
 )
-from app.main import create_app
 
 PRODUCT_DIR = Path(__file__).resolve().parent.parent
 COST_FIELDS = {"model", "route", "cached_calls", "cost_usd"}
@@ -24,12 +24,7 @@ UNAVAILABLE_MESSAGE = "El modelo no está disponible en este momento. Intenta de
 @pytest.fixture
 def priced_client(make_settings, directory, clock, log_stream):
     """App con los modelos simulados que arma la propia aplicacion (con precio)."""
-    app = create_app(
-        settings=make_settings(),
-        directory=directory,
-        clock=clock,
-        log_stream=log_stream,
-    )
+    app = build_default_app(make_settings, directory, clock, log_stream)
     return keyed_client(app)
 
 

@@ -3,7 +3,7 @@
 ``GatewayLLM`` cumple el protocolo ``LLM``. El cliente ``httpx`` se inyecta para
 que las pruebas usen un transporte falso y nunca llamen a la red. Cualquier
 fallo se convierte en ``ModelUnavailable`` con un mensaje que no lleva ni la
-peticion ni el token.
+peticion ni los tokens.
 """
 
 import httpx
@@ -16,6 +16,7 @@ GATEWAY_URL_TEMPLATE = (
     "/workers-ai/v1/chat/completions"
 )
 CACHE_TTL_HEADER = "cf-aig-cache-ttl"
+GATEWAY_AUTH_HEADER = "cf-aig-authorization"
 CACHE_STATUS_HEADER = "cf-aig-cache-status"
 CACHE_HIT = "HIT"
 # Sin reintentos automaticos: cada reintento cuesta.
@@ -83,12 +84,18 @@ class GatewayLLM:  # pylint: disable=too-few-public-methods
         return self._parse(response)
 
     def _headers(self) -> dict:
-        """Arma los encabezados: token y, si aplica, el TTL de la cache.
+        """Arma los encabezados: tokens y, si aplica, el TTL de la cache.
+
+        ``Authorization`` lleva el token de Workers AI. Si hay
+        ``cf_aig_token``, se agrega ``cf-aig-authorization`` para un gateway
+        con "Authenticated Gateway"; si esta vacio, no se manda.
 
         :return: Encabezados de la peticion
         :rtype: dict[str, str]
         """
         headers = {"Authorization": f"Bearer {self._settings.cf_api_token}"}
+        if self._settings.cf_aig_token:
+            headers[GATEWAY_AUTH_HEADER] = f"Bearer {self._settings.cf_aig_token}"
         if self._settings.cache_ttl_seconds > 0:
             headers[CACHE_TTL_HEADER] = str(self._settings.cache_ttl_seconds)
         return headers

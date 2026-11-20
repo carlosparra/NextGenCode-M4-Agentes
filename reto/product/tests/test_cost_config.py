@@ -57,3 +57,32 @@ def test_invalid_cost_value_prevents_startup(make_settings, variable, value):
         make_settings(**{variable: value})
 
     assert variable in str(error.value)
+
+
+# Token del "Authenticated Gateway": opcional y secreto como CF_API_TOKEN.
+GATEWAY_AUTH_TOKEN = "aig-config-secret-value"
+
+
+def test_gateway_auth_token_is_optional_and_empty_by_default(make_settings):
+    assert load_settings({}).cf_aig_token == ""
+    assert make_settings(**GATEWAY_ENV).cf_aig_token == ""
+
+
+def test_gateway_auth_token_is_read_but_hidden_from_the_settings_repr(
+    make_settings,
+):
+    settings = make_settings(**GATEWAY_ENV, CF_AIG_TOKEN=GATEWAY_AUTH_TOKEN)
+
+    assert settings.cf_aig_token == GATEWAY_AUTH_TOKEN
+    assert GATEWAY_AUTH_TOKEN not in repr(settings)
+    assert GATEWAY_AUTH_TOKEN not in str(settings)
+
+
+def test_config_error_does_not_reveal_the_gateway_auth_token(make_settings):
+    with pytest.raises(ConfigError) as error:
+        make_settings(
+            **{**GATEWAY_ENV, "CF_API_TOKEN": "", "CF_AIG_TOKEN": GATEWAY_AUTH_TOKEN}
+        )
+
+    assert "CF_API_TOKEN" in str(error.value)
+    assert GATEWAY_AUTH_TOKEN not in str(error.value)

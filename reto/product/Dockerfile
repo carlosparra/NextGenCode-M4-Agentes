@@ -25,4 +25,7 @@ USER appuser
 EXPOSE 8000
 
 # Render pone el puerto en PORT; en local se usa 8000.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# WEB_CONCURRENCY fija los procesos de uvicorn (spec/05-reto.md, punto 7). Las
+# métricas, el límite y la caché son por proceso (ADR 0005, 0012 y 0016).
+# exec deja a uvicorn como PID 1 para que reciba las señales de apagado.
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers ${WEB_CONCURRENCY:-1}"]

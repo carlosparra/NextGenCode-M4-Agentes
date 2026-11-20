@@ -4,8 +4,10 @@ Claude Code llama a este script antes de cada herramienta y le pasa por stdin un
 JSON con ``agent_type`` (el agente), ``tool_name`` y ``tool_input``. Si el script
 termina con código 2, la herramienta se bloquea y el agente lee el motivo.
 
-Sesión 4: dos reglas para todos, también para el orquestador. Nadie lee ``.env``,
-y nadie publica sin ``output/approved.txt``, que solo existe si una persona aprobó.
+Sesión 4 y spec/05-reto.md: dos reglas para todos, también para el orquestador.
+Nadie lee ``.env``, y nadie publica sin ``output/approved.txt``, que solo existe
+si una persona aprobó. ``guardrails`` (puntos 5 y 6 de spec/05-reto.md) escribe
+solo en ``product/app/`` y en los archivos de configuración del producto.
 """
 
 import json
@@ -22,11 +24,14 @@ WRITABLE = {
     "qa-e2e": ["product/e2e/"],
     "qa-style": ["output/qa-review.md"],
     "developer": ["product/app/", "product/data/", "product/requirements.txt"],
-    "observability": ["product/app/", "product/requirements.txt", "product/README.md"],
+    "observability": ["product/app/", "product/requirements.txt", "product/README.md",
+                      "product/.env.example"],
     "costs": ["product/app/", "product/data/", "product/requirements.txt",
               "product/README.md", "product/.env.example"],
     "security": ["product/app/", "product/requirements.txt", "product/README.md",
                  "product/.env.example", "product/doc/compliance-checklist.md"],
+    "guardrails": ["product/app/", "product/requirements.txt", "product/README.md",
+                   "product/.env.example"],
     "deploy": ["product/Dockerfile", "product/.dockerignore", "product/render.yaml",
                "product/.github/", "product/scripts/", "product/.gitignore"],
     "triage": ["output/triage.md"],

@@ -2,6 +2,9 @@
 
 Estado: aceptado
 
+> Nota de vigencia: la última consecuencia (`LANGSMITH_API_KEY` fuera del Blueprint) quedó reemplazada por el
+> ADR 0017: `render.yaml` ahora declara `LANGSMITH_API_KEY` con `sync: false` y fija `LANGSMITH_TRACING=true`.
+
 ## Contexto
 
 En producción no puede correr el modelo simulado, ni faltar claves o ser cortas, ni mandarse entradas o salidas a
@@ -24,4 +27,5 @@ LangSmith. Además, nada debe llegar a Render sin pasar estilo, pruebas, e2e y l
 - Una configuración insegura falla al desplegar, en el health check de Render, y no sirve tráfico.
 - Las reglas tienen pruebas: cambiarlas sin actualizar la tabla y las pruebas deja el CI en rojo.
 - Render publica solo commits con el CI en verde. Un CI roto bloquea también los arreglos urgentes.
-- `LANGSMITH_API_KEY` no va en el Blueprint; se agrega a mano en Render si se encienden las trazas.
+- (Reemplazado por ADR 0017) `LANGSMITH_API_KEY` no va en el Blueprint; se agrega a mano en Render si se encienden
+  las trazas.

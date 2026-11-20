@@ -1,6 +1,10 @@
 # 0006. Trazas de LangSmith opcionales detrás de un adaptador
 
-Estado: propuesto
+Estado: aceptado; reemplazado en parte por 0017.
+
+> Nota de vigencia: el adaptador descrito aquí sigue vigente. Lo que cambió es la obligatoriedad: desde
+> `spec/05-reto.md` las trazas son obligatorias en Render (`render.yaml` fija `LANGSMITH_TRACING=true` y declara
+> `LANGSMITH_API_KEY` con `sync: false`). En local, en las pruebas y en el CI siguen siendo opcionales. Ver ADR 0017.
 
 ## Contexto
 

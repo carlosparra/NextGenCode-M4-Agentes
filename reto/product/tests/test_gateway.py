@@ -136,3 +136,53 @@ def test_gateway_failure_is_model_unavailable_without_the_token(
 
     assert CF_TOKEN not in str(error.value)
     assert CF_TOKEN not in repr(error.value)
+
+
+# Token del "Authenticated Gateway" (CF_AIG_TOKEN), distinto de CF_API_TOKEN.
+AIG_TOKEN = "aig-gateway-secret-value"
+AIG_HEADER = "cf-aig-authorization"
+
+
+def _sent_headers(make_settings, **env):
+    """Hace una llamada exitosa y devuelve los encabezados enviados.
+
+    :param make_settings: Fabrica de configuracion
+    :type make_settings: callable
+    :return: Encabezados de la unica peticion enviada
+    :rtype: httpx.Headers
+    """
+    sent = []
+
+    def handler(request):
+        sent.append(request)
+        return httpx.Response(200, json=OK_BODY)
+
+    gateway(make_settings, handler, **env).complete(MESSAGES)
+    return sent[0].headers
+
+
+def test_gateway_token_is_sent_as_cf_aig_authorization(make_settings):
+    headers = _sent_headers(make_settings, CF_AIG_TOKEN=AIG_TOKEN)
+
+    assert headers[AIG_HEADER] == f"Bearer {AIG_TOKEN}"
+    assert headers["Authorization"] == f"Bearer {CF_TOKEN}"
+
+
+def test_without_gateway_token_the_cf_aig_authorization_header_is_not_sent(
+    make_settings,
+):
+    headers = _sent_headers(make_settings)
+
+    assert AIG_HEADER not in headers
+    assert headers["Authorization"] == f"Bearer {CF_TOKEN}"
+
+
+@pytest.mark.parametrize("handler", [_status_401, _timeout])
+def test_gateway_failure_does_not_leak_the_gateway_token(make_settings, handler):
+    model = gateway(make_settings, handler, CF_AIG_TOKEN=AIG_TOKEN)
+
+    with pytest.raises(ModelUnavailable) as error:
+        model.complete(MESSAGES)
+
+    assert AIG_TOKEN not in str(error.value)
+    assert AIG_TOKEN not in repr(error.value)

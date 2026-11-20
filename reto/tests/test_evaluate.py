@@ -39,3 +39,13 @@ def test_levers_must_be_cheaper_without_losing_quality():
     assert evaluate.verdict(baseline, {"quality": 0.9, "cost_usd": 0.4})
     assert not evaluate.verdict(baseline, {"quality": 0.8, "cost_usd": 0.1})
     assert not evaluate.verdict(baseline, {"quality": 1.0, "cost_usd": 1.0})
+
+def test_measure_repeats_every_case_each_round():
+    cases = [{"question": "q", "must_include": ["Ana"]}]
+    result = evaluate.measure(FakeClient("Ana", 0.5), cases, rounds=2)
+    assert result == {"quality": 1.0, "cost_usd": 1.0, "input_tokens": 20}
+
+
+def test_reduction_is_the_share_of_cost_saved():
+    assert evaluate.reduction({"cost_usd": 1.0}, {"cost_usd": 0.25}) == 0.75
+    assert evaluate.reduction({"cost_usd": 0.0}, {"cost_usd": 0.0}) == 0.0

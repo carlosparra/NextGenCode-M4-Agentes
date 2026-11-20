@@ -44,6 +44,58 @@ Desde la sesión 4 el acceso es seguro:
 - **La página** tiene un campo de clave (tipo contraseña) que se guarda solo en `sessionStorage` de la pestaña.
   Con 401 muestra «Clave inválida»; con 429, «Demasiadas preguntas; espera N segundos».
 
+En el reto el producto queda operable en producción:
+
+- **API documentada:** `/docs` (Swagger, con botón Authorize para `X-API-Key`) y `/openapi.json`, públicos y sin
+  claves. OpenAPI lleva el título `HR Assistant API`, la versión `APP_VERSION`, los tags `chat` y `operations`, un
+  resumen y una descripción por ruta, y los errores `400`, `401`, `422`, `429` y `502` de `POST /ask` con un
+  ejemplo de cuerpo. `GET /health` responde `{"status": "ok", "pid": ..., "version": ...}`.
+- **Concurrencia:** la API sigue sin estado (el agente se crea por petición) y `POST /ask` es una función normal
+  que FastAPI corre en su pool de hilos. Las métricas, el límite, la caché y el log se protegen con `threading.Lock`. El
+  contenedor arranca `WEB_CONCURRENCY` procesos; cada uno tiene sus propias métricas, límite y caché, y el `pid` de
+  `/health` y `/metrics` dice cuál respondió.
+- **Observabilidad completa:** el evento `agent_run` agrega `latency_ms` (con el reloj inyectado) y `cost_usd`; el
+  evento `request` de `POST /ask` agrega `cost_usd`. `GET /metrics` agrega `errors_by_status` (`4xx`, `5xx`),
+  `cost_usd_per_request` (costo acumulado entre respuestas de `/ask`), `security` (`auth_failures`,
+  `rate_limited`, `inputs_rejected`, `pii_detections`, `outputs_blocked`) y `cache` (`hits`, `misses`).
+- **Trazas en LangSmith:** cada corrida lleva en sus metadatos `request_id`, `client`, `model`, `route` y
+  `environment`, y `agent_run` además su `cost_usd` al terminar; los tags son `environment:<valor>` y
+  `route:<valor>`. Con `HIDE_INPUTS`/`HIDE_OUTPUTS` no se manda texto: solo estructura, tiempos, tokens y
+  metadatos.
+- **Palanca 5, caché de respuestas** (`app/cache.py`): con `RESPONSE_CACHE_TTL_SECONDS` > 0, una pregunta repetida
+  (misma pregunta sin mayúsculas ni espacios extra, mismo modelo elegido y misma ventana de historial) se responde
+  desde una caché LRU en memoria de `RESPONSE_CACHE_SIZE` entradas, sin llamar al modelo. La respuesta agrega
+  `"cache": "hit"` o `"miss"` (no aparece con la caché apagada); con `hit` repite `answer`, `steps` y `tools_used`
+  con `input_tokens`, `output_tokens` y `cost_usd` en 0. Nunca se guarda una respuesta si la pregunta o el historial
+  tenían datos sensibles, ni una salida con secretos. La caché tiene su propio reloj (inyectable con
+  `create_app(response_cache=...)`) y un `threading.Lock`; es por proceso. `GET /metrics` cuenta `cache.hits` y
+  `cache.misses`.
+- **Datos sensibles** (`app/pii.py`): con expresiones regulares compiladas una vez se detectan `email`, `phone`
+  (de 7 a 10 dígitos, `+52` opcional, juntos o separados por espacio, punto, guion o paréntesis: `987654321`,
+  `(55) 1234-5678`, `555-1234`), `curp`, `rfc`, `card` (13 a 19 dígitos que pasan Luhn) y `nss` (11 dígitos).
+  Una CURP no cuenta además como RFC y una tarjeta no cuenta como teléfono ni NSS; `EMP-0004` y las fechas no son
+  PII. El prompt de sistema le prohíbe al agente dar datos que no devuelven sus herramientas (teléfono, correo,
+  dirección, salario...) y le pide responder «No tengo ese dato en el directorio.»; si aun así inventa un teléfono,
+  el enmascarado de la respuesta lo oculta. Con `PII_POLICY=mask` (por omisión) cada dato de la pregunta y del historial se cambia por
+  `[EMAIL]`, `[TELEFONO]`, `[CURP]`, `[RFC]`, `[TARJETA]` o `[NSS]` **antes** de llegar al enrutador, la caché, el
+  modelo, el log y la traza; la respuesta también se enmascara, y agrega `"pii_detected": [...]` con los tipos sin
+  repetir y en orden alfabético (no aparece si no hubo). Con `PII_POLICY=block` responde
+  `400 {"detail": "sensitive data not allowed"}`.
+- **Guardas de entrada y salida** (`app/guardrails.py`): una pregunta o un mensaje del historial con inyección de
+  instrucciones («ignora las instrucciones», «ignore all previous instructions», «prompt del sistema», «system
+  prompt», «revela tus instrucciones», sin distinguir mayúsculas ni acentos) responde
+  `400 {"detail": "input rejected"}`. Orden: clave (401), límite (429), esquema (422), inyección (400), PII, caché,
+  agente y salida. Antes de devolverla, la respuesta vacía se cambia por «No encontré una respuesta.», se recorta a
+  `MAX_ANSWER_CHARS` y, si trae un secreto (una clave de `API_KEYS`, `Bearer <token>` o 32 o más caracteres
+  hexadecimales con dígitos y letras), se reemplaza por «No puedo mostrar esa respuesta.». Nunca se guarda en la
+  caché una respuesta con datos sensibles en la entrada o la salida, ni una salida bloqueada.
+- **Auditoría:** el evento `audit` lleva `action` `tool_call`, `auth_failed`, `rate_limited`, `input_rejected`,
+  `pii_detected` (con `types` y `where`: `question`, `history` o `answer`) u `output_blocked`, siempre con
+  `request_id` y `client` (`null` sin autenticar). Nunca el valor detectado, la pregunta ni la clave. Cada guarda
+  suma su contador en `security` de `/metrics`.
+- **La página** muestra en `data-testid="notice"` «Se ocultaron datos sensibles» cuando llega `pii_detected` y
+  «Pregunta rechazada» con un `400`.
+
 La arquitectura y las decisiones están en `doc/architecture.md` y `doc/adr/`.
 
 ## Cómo correrlo
@@ -62,10 +114,11 @@ Antes de arrancar define al menos un cliente en `.env` o en el entorno, por ejem
 | Ruta | Clave | Para qué |
 | --- | --- | --- |
 | `GET /` | No | Página web |
-| `GET /health` | No | `{"status": "ok", "pid": ...}` |
-| `GET /docs` | No | Documentación OpenAPI |
-| `POST /ask` | Sí | `{"question", "history"}` -> `{answer, steps, tools_used, input_tokens, output_tokens, request_id, model, route, cached_calls, cost_usd}` |
-| `GET /metrics` | Sí | `{pid, requests, error_rate, latency_ms: {p50, p95}, tokens: {input, output}, cost_usd, slo: {p95_ms_target, met}}` |
+| `GET /health` | No | `{"status": "ok", "pid": ..., "version": ...}` |
+| `GET /docs` | No | Documentación OpenAPI (Swagger) |
+| `GET /openapi.json` | No | Esquema OpenAPI |
+| `POST /ask` | Sí | `{"question", "history"}` -> `{answer, steps, tools_used, input_tokens, output_tokens, request_id, model, route, cached_calls, cost_usd, cache?, pii_detected?}` (`cache` solo con la caché de respuestas encendida; `pii_detected` solo si se ocultaron datos sensibles). `400` con inyección o, con `PII_POLICY=block`, con datos sensibles |
+| `GET /metrics` | Sí | `{pid, requests, error_rate, errors_by_status: {4xx, 5xx}, latency_ms: {p50, p95}, tokens: {input, output}, cost_usd, cost_usd_per_request, security: {...}, cache: {hits, misses}, slo: {p95_ms_target, met}}` |
 
 Ejemplo por línea de comandos (la clave se lee de una variable, no se escribe en el comando):
 
@@ -89,7 +142,7 @@ Desde la raíz del repositorio:
 
 ```bash
 uv run python -m verification unit      # pruebas del producto, cobertura >= 80 %
-uv run python -m verification contract  # contrato de las sesiones 1 a 4
+uv run python -m verification contract  # contrato de las sesiones 1 a 4 y del reto
 uv run python -m verification qa        # pylint, 88 columnas, sin emojis, documentos
 uv run python -m verification e2e       # pruebas de Playwright en product/e2e/
 uv run python -m verification evaluate  # calidad y costo: línea base contra palancas
@@ -125,12 +178,17 @@ una corre solo si la anterior pasa.
    Playwright.
 4. `docker`: construye la imagen.
 
-**Publicación.** `render.yaml` es el Blueprint de Render: un servicio web `hr-assistant` con la imagen
-de `Dockerfile` y `healthCheckPath: /health`. Con `autoDeployTrigger: checksPass` Render despliega solo
-cuando el CI pasa. Fija `ENVIRONMENT=production`, `MODEL_PROVIDER=gateway`, `HIDE_INPUTS=true` y
-`HIDE_OUTPUTS=true`, así que las reglas de compliance aplican. Los secretos `API_KEYS`, `CF_ACCOUNT_ID` y
-`CF_API_TOKEN` están con `sync: false`: se escriben en Render > Environment, nunca en el repositorio.
-`LANGSMITH_API_KEY` es opcional y se agrega ahí mismo si se encienden las trazas.
+**Publicación.** `render.yaml` es el Blueprint de Render: un servicio web `hr-assistant-reto` con la
+imagen de `Dockerfile` y `healthCheckPath: /health`. Con `autoDeployTrigger: checksPass` Render despliega
+solo cuando el CI pasa. Fija `ENVIRONMENT=production`, `MODEL_PROVIDER=gateway`, `HIDE_INPUTS=true` y
+`HIDE_OUTPUTS=true`, así que las reglas de compliance aplican. Además fija `WEB_CONCURRENCY=2`,
+`RATE_LIMIT_PER_MINUTE=60` (por cliente y por proceso), `RESPONSE_CACHE_TTL_SECONDS=300`,
+`CACHE_TTL_SECONDS=300`, `PII_POLICY=mask`, `LANGSMITH_TRACING=true` y `LANGSMITH_PROJECT=hr-assistant-reto`.
+En Render las trazas son obligatorias: los secretos `API_KEYS`, `CF_ACCOUNT_ID`, `CF_API_TOKEN`,
+`CF_AIG_TOKEN` y `LANGSMITH_API_KEY` están con `sync: false` y se escriben en Render > Environment, nunca en el
+repositorio (ADR 0017). `CF_AIG_TOKEN` hace falta porque el AI Gateway en uso tiene "Authenticated Gateway"
+encendido: sin él, Cloudflare rechaza cada llamada y `POST /ask` responde 502. En local las trazas siguen siendo opcionales: con `LANGSMITH_TRACING=false`, que es el valor por
+omisión, o sin clave, no se conecta LangSmith.
 
 **Prueba de humo.** Después de publicar, desde `product/`, con la clave de un cliente en `SMOKE_API_KEY`
 (se lee del entorno, nunca de un argumento):
@@ -155,13 +213,15 @@ Todas se validan al arrancar: un valor inválido detiene la aplicación con un m
 | `EMPLOYEES_PATH` | `data/employees.json` | Archivo de empleados (relativo a `product/`) |
 | `SERVICE_NAME` | `hr-assistant` | Campo `service` del log |
 | `SLO_P95_MS` | `2000` | Meta de latencia p95 en milisegundos (`met` si p95 < meta) |
-| `LANGSMITH_TRACING` | `false` | Enciende las trazas (`true`/`false`) |
-| `LANGSMITH_API_KEY` | (sin valor) | Clave de LangSmith; sin ella no hay trazas ni conexión |
+| `LANGSMITH_TRACING` | `false` (`true` en Render) | Enciende las trazas (`true`/`false`) |
+| `LANGSMITH_API_KEY` | (sin valor) | Clave de LangSmith, secreto: opcional en local (sin ella no hay trazas ni conexión); obligatoria en Render (`sync: false`, ADR 0017) |
+| `LANGSMITH_PROJECT` | (sin valor) | Proyecto de LangSmith (`hr-assistant-reto` en Render) |
 | `HIDE_INPUTS` | `true` | No mandar a LangSmith las entradas |
 | `HIDE_OUTPUTS` | `true` | No mandar a LangSmith las salidas |
 | `CF_ACCOUNT_ID` | (sin valor) | Cuenta de Cloudflare (obligatoria con `gateway`) |
 | `CF_GATEWAY_ID` | `default` | Id del AI Gateway (obligatorio con `gateway`) |
 | `CF_API_TOKEN` | (sin valor) | Token de Cloudflare, secreto (obligatorio con `gateway`) |
+| `CF_AIG_TOKEN` | (sin valor) | Token del AI Gateway, secreto y opcional: si tiene valor se manda en `cf-aig-authorization` (necesario con "Authenticated Gateway"); vacío, no se manda |
 | `MODEL_SMALL` | `@cf/meta/llama-3.1-8b-instruct-fast` | Modelo barato; debe tener precio |
 | `MODEL_LARGE` | `@cf/meta/llama-3.3-70b-instruct-fp8-fast` | Modelo capaz; debe tener precio |
 | `ROUTING` | `true` | Enrutamiento por pregunta (`true`/`false`) |
@@ -174,6 +234,12 @@ Todas se validan al arrancar: un valor inválido detiene la aplicación con un m
 | `ENVIRONMENT` | `development` | `development` o `production`; con `production` se aplican las reglas de compliance |
 | `API_KEYS` | (vacía) | Clientes y claves, secreto: `cliente:clave,cliente2:clave2`. El nombre usa letras, dígitos, `.`, `_` o `-`; la clave se parte en el primer `:` |
 | `RATE_LIMIT_PER_MINUTE` | `30` | Peticiones por cliente por minuto (>= 1) |
+| `APP_VERSION` | `1.0.0` | Versión en `/health` y en OpenAPI (no vacía) |
+| `WEB_CONCURRENCY` | `1` | Procesos de uvicorn en el contenedor (la lee el `CMD` del `Dockerfile`) |
+| `RESPONSE_CACHE_TTL_SECONDS` | `0` | Caché de respuestas en segundos (0: apagada; >= 0) |
+| `RESPONSE_CACHE_SIZE` | `256` | Entradas máximas de la caché de respuestas (>= 1) |
+| `PII_POLICY` | `mask` | Datos sensibles en la pregunta o el historial: `mask` (se enmascaran antes del modelo) o `block` (`400 sensitive data not allowed`) |
+| `MAX_ANSWER_CHARS` | `2000` | Largo máximo de la respuesta; se recorta antes de devolverla (>= 1) |
 
 `.env.example` lista todas las variables sin valores secretos.
 
@@ -184,5 +250,5 @@ tiempo constante (`hmac.compare_digest`). Genera claves largas y aleatorias, por
 `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
 
 `LANGSMITH_API_KEY` solo se lee del entorno: la usa el SDK de LangSmith, no se guarda en la configuración y
-nunca se escribe en el log ni en el código. No la pongas en archivos versionados. `CF_API_TOKEN` se guarda en la
-configuración, pero no aparece en su `repr`, en el log, en las trazas ni en los mensajes de error.
+nunca se escribe en el log ni en el código. No la pongas en archivos versionados. `CF_API_TOKEN` y `CF_AIG_TOKEN`
+se guardan en la configuración, pero no aparecen en su `repr`, en el log, en las trazas ni en los mensajes de error.

@@ -24,6 +24,7 @@ def write(agent, path, tool="Write"):
         ("qa-unit", "product/tests/test_agent.py"),
         ("developer", "product/app/main.py"),
         ("developer", "product/requirements.txt"),
+        ("guardrails", "product/app/pii.py"),
     ],
 )
 def test_agent_can_write_in_its_folders(agent, path):
@@ -102,3 +103,6 @@ def test_publishing_needs_human_approval(command, tmp_path, monkeypatch):
     (tmp_path / "output").mkdir()
     (tmp_path / "output" / "approved.txt").write_text("ok", encoding="utf-8")
     assert check(event) is None
+
+def test_guardrails_cannot_write_tests():
+    assert check(write("guardrails", "product/tests/test_pii.py")) is not None

@@ -2,6 +2,8 @@
 
 import io
 import json
+import sys
+import types
 from datetime import datetime, timezone
 
 import httpx
@@ -175,6 +177,100 @@ def keyed_client(app, **options):
     :rtype: TestClient
     """
     return TestClient(app, headers={API_KEY_HEADER: TEST_API_KEY}, **options)
+
+
+class RecordingTracer:  # pylint: disable=too-few-public-methods
+    """Trazador doble que anota las opciones de cada traza."""
+
+    def __init__(self):
+        self.spans = []
+
+    def trace(self, func, **options):
+        """Anota las opciones y devuelve la funcion sin cambios.
+
+        :param func: Funcion a trazar
+        :type func: callable
+        :param options: ``name``, ``request_id``, ``client``, ``model``...
+        :type options: dict
+        :return: La misma funcion
+        :rtype: callable
+        """
+        self.spans.append(options)
+        return func
+
+
+def fake_langsmith_module(recorded):
+    """Modulo ``langsmith`` falso que registra cliente y decoradores.
+
+    :param recorded: Diccionario donde se guardan los argumentos recibidos
+    :type recorded: dict
+    :return: Modulo que sustituye a ``langsmith`` en ``sys.modules``
+    :rtype: types.ModuleType
+    """
+    module = types.ModuleType("langsmith")
+
+    class Client:  # pylint: disable=too-few-public-methods
+        """Cliente falso: guarda sus argumentos y no se conecta."""
+
+        def __init__(self, **kwargs):
+            recorded["client"] = kwargs
+
+    def traceable(*_args, **kwargs):
+        recorded.setdefault("traceable", []).append(kwargs)
+        return lambda func: func
+
+    module.Client = Client
+    module.traceable = traceable
+    return module
+
+
+def langsmith_settings(employees_file, monkeypatch, recorded):
+    """Configuracion con trazas de LangSmith activas y el modulo falso instalado.
+
+    :param employees_file: Archivo temporal de empleados
+    :type employees_file: pathlib.Path
+    :param monkeypatch: Fixture de pytest para sustituir ``sys.modules``
+    :type monkeypatch: pytest.MonkeyPatch
+    :param recorded: Diccionario donde el modulo falso guarda lo que recibe
+    :type recorded: dict
+    :return: Configuracion con ``LANGSMITH_TRACING`` y clave de prueba
+    :rtype: Settings
+    """
+    monkeypatch.setitem(sys.modules, "langsmith", fake_langsmith_module(recorded))
+    return load_settings(
+        {
+            "EMPLOYEES_PATH": str(employees_file),
+            "LANGSMITH_TRACING": "true",
+            "LANGSMITH_API_KEY": "lsv2-test-key",
+        }
+    )
+
+
+def build_default_app(make_settings, directory, clock, log_stream, **dependencies):
+    """App con los modelos simulados que arma la propia aplicacion (con precio).
+
+    :param make_settings: Fabrica de configuracion de la fixture ``make_settings``
+    :type make_settings: callable
+    :param directory: Directorio de empleados
+    :type directory: EmployeeDirectory
+    :param clock: Reloj de la aplicacion
+    :type clock: FakeClock
+    :param log_stream: Buffer donde la aplicacion escribe su log
+    :type log_stream: io.StringIO
+    :param dependencies: ``env`` (variables extra) y dependencias de
+        ``create_app`` como ``tracer`` o ``rate_limiter``
+    :type dependencies: dict
+    :return: Aplicacion lista para probar
+    :rtype: fastapi.FastAPI
+    """
+    env = dependencies.pop("env", {})
+    return create_app(
+        settings=make_settings(**env),
+        directory=directory,
+        clock=clock,
+        log_stream=log_stream,
+        **dependencies,
+    )
 
 
 class ScriptedLLM:

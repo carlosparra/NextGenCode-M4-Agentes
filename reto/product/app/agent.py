@@ -8,6 +8,7 @@ nunca se lanzan excepciones hacia la API.
 import json
 from dataclasses import dataclass, field
 
+from app.clock import SystemClock
 from app.directory import EmployeeDirectory
 from app.llm import FAKE_MODEL_NAME, LLM, TOOL_RESULT_PREFIX
 from app.pricing import FREE_PRICES, PriceTable
@@ -16,6 +17,8 @@ from app.tracing import NoopTracer
 
 STOPPED_ANSWER = "answer"
 STOPPED_MAX_STEPS = "max_steps"
+MILLISECONDS = 1000
+LATENCY_DECIMALS = 3
 
 CAP_MESSAGE = (
     "No pude completar la respuesta. Intenta con una pregunta más concreta."
@@ -29,7 +32,12 @@ SYSTEM_PROMPT = (
     "get_employee(employee_id) devuelve un empleado por id, por ejemplo "
     "EMP-0004; search_by_department(department) devuelve los empleados de un "
     "departamento. El resultado de una herramienta llega en un mensaje que "
-    f"empieza con '{TOOL_RESULT_PREFIX.strip()}'."
+    f"empieza con '{TOOL_RESULT_PREFIX.strip()}'. "
+    "Solo das los datos que devuelven tus herramientas: id, nombre, "
+    "departamento, puesto, fecha de ingreso y estado. Nunca inventes datos. Si "
+    "te piden otro dato de una persona (teléfono, correo, dirección, salario u "
+    "otro), responde exactamente: "
+    '{"answer": "No tengo ese dato en el directorio."}'
 )
 
 # Cada herramienta declara el unico argumento de texto que acepta.
@@ -128,7 +136,7 @@ class ToolCallError(ValueError):
     """La salida del modelo no es una peticion valida."""
 
 
-class Agent:  # pylint: disable=too-few-public-methods
+class Agent:  # pylint: disable=too-few-public-methods,too-many-instance-attributes
     """Agente unico con tope de vueltas.
 
     Se crea uno por peticion; no guarda estado entre ejecuciones.
@@ -145,12 +153,17 @@ class Agent:  # pylint: disable=too-few-public-methods
     :param tracer: Trazador de corridas, modelo y herramientas; por omision
         uno apagado
     :type tracer: app.tracing.NoopTracer or None
+    :param clock: Reloj para medir ``latency_ms``; por omision el del sistema
+    :type clock: app.clock.Clock or None
+    :param environment: ``development`` o ``production``, para los metadatos
+        y tags de la traza; por omision no se reporta
+    :type environment: str or None
     :param options: Modelo, motivo, ventana y precios (ver ``CostOptions``);
         por omision ``fake``, sin recorte y sin costo
     :type options: dict
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         llm: LLM,
         directory: EmployeeDirectory,
@@ -158,6 +171,8 @@ class Agent:  # pylint: disable=too-few-public-methods
         *,
         telemetry=None,
         tracer=None,
+        clock=None,
+        environment=None,
         **options,
     ):
         self._llm = llm
@@ -165,13 +180,15 @@ class Agent:  # pylint: disable=too-few-public-methods
         self._max_steps = max_steps
         self._log = telemetry if telemetry is not None else NullRequestLog()
         self._tracer = tracer if tracer is not None else NoopTracer()
+        self._clock = clock if clock is not None else SystemClock()
+        self._environment = environment
         self._cost = CostOptions(**options)
 
     def run(self, question: str, history: list) -> AgentResult:
         """Responde una pregunta y registra el resumen de la corrida.
 
-        El evento ``agent_run`` solo lleva conteos, nunca el texto de la
-        pregunta ni de la respuesta.
+        El evento ``agent_run`` solo lleva conteos, latencia y costo, nunca el
+        texto de la pregunta ni de la respuesta.
 
         :param question: Pregunta de la persona
         :type question: str
@@ -181,8 +198,10 @@ class Agent:  # pylint: disable=too-few-public-methods
         :rtype: AgentResult
         """
         sent_history = self._cost.window(history)
-        traced_run = self._trace(self._loop, "agent_run")
+        traced_run = self._trace(self._annotated_loop, "agent_run")
+        started = self._clock.monotonic()
         result = traced_run(question, sent_history)
+        elapsed = self._clock.monotonic() - started
         self._log.agent_run(
             RunSummary(
                 question_chars=len(question),
@@ -197,14 +216,36 @@ class Agent:  # pylint: disable=too-few-public-methods
                 history_sent=len(sent_history),
                 cached_calls=result.cached_calls,
                 cost_usd=result.cost_usd,
+                latency_ms=round(elapsed * MILLISECONDS, LATENCY_DECIMALS),
             )
         )
         return result
 
-    def _trace(self, func, name: str):
-        """Envuelve una funcion con el trazador, el id de la peticion y el cliente.
+    def _annotated_loop(self, question: str, history: list) -> AgentResult:
+        """Corre el bucle y agrega su ``cost_usd`` a la traza ``agent_run``.
 
-        El cliente es el nombre ligado al log; la clave nunca llega aqui.
+        El costo solo se conoce al terminar; se agrega dentro de la funcion
+        trazada para que quede en los metadatos de esa corrida. Un trazador
+        sin ``annotate`` (por ejemplo, un doble de pruebas) se respeta.
+
+        :param question: Pregunta de la persona
+        :type question: str
+        :param history: Mensajes previos ya recortados a la ventana
+        :type history: list[dict]
+        :return: El resultado del bucle
+        :rtype: AgentResult
+        """
+        result = self._loop(question, history)
+        annotate = getattr(self._tracer, "annotate", None)
+        if annotate is not None:
+            annotate(cost_usd=result.cost_usd)
+        return result
+
+    def _trace(self, func, name: str):
+        """Envuelve una funcion con el trazador y el contexto de la peticion.
+
+        Los metadatos son ``request_id``, ``client`` (el nombre ligado al log;
+        la clave nunca llega aqui), ``model``, ``route`` y ``environment``.
 
         :param func: Funcion a trazar
         :type func: callable
@@ -218,6 +259,9 @@ class Agent:  # pylint: disable=too-few-public-methods
             name=name,
             request_id=self._log.request_id,
             client=self._log.client,
+            model=self._cost.model,
+            route=self._cost.route or None,
+            environment=self._environment,
         )
 
     def _loop(self, question: str, history: list) -> AgentResult:

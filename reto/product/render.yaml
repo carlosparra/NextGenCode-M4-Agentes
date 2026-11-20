@@ -1,8 +1,8 @@
-# Blueprint de Render (spec/04-production.md, punto 7).
+# Blueprint de Render (spec/04-production.md, punto 7, y spec/05-reto.md, punto 7).
 # El servicio se llama igual que el repositorio para no pisar otro servicio de la cuenta.
 services:
   - type: web
-    name: hr-assistant
+    name: hr-assistant-reto
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile
@@ -19,11 +19,35 @@ services:
         value: "true"
       - key: HIDE_OUTPUTS
         value: "true"
+      # Concurrencia: procesos de uvicorn en el contenedor (estado por proceso).
+      - key: WEB_CONCURRENCY
+        value: "2"
+      # Límite de peticiones por cliente y por proceso.
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "60"
+      # Palanca 5: caché de respuestas en memoria (segundos).
+      - key: RESPONSE_CACHE_TTL_SECONDS
+        value: "300"
+      # Caché del AI Gateway de Cloudflare (segundos).
+      - key: CACHE_TTL_SECONDS
+        value: "300"
+      # Datos sensibles: se enmascaran antes de llegar al modelo, al log y a la traza.
+      - key: PII_POLICY
+        value: mask
+      # Trazas en LangSmith: son requisito; el proyecto se llama igual que el repositorio.
+      - key: LANGSMITH_TRACING
+        value: "true"
+      - key: LANGSMITH_PROJECT
+        value: hr-assistant-reto
       # Secretos: se escriben en Render al crear el Blueprint, nunca en el repositorio.
-      # LANGSMITH_API_KEY es opcional y se agrega en Render > Environment si se encienden las trazas.
       - key: API_KEYS
         sync: false
       - key: CF_ACCOUNT_ID
         sync: false
       - key: CF_API_TOKEN
+        sync: false
+      # Token del AI Gateway autenticado (encabezado cf-aig-authorization).
+      - key: CF_AIG_TOKEN
+        sync: false
+      - key: LANGSMITH_API_KEY
         sync: false

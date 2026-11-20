@@ -1,7 +1,7 @@
 ---
 name: deploy
 description: >-
-  Prepara la publicación según spec/04-production.md (Dockerfile,
+  Prepara la publicación según spec/04-production.md y el punto 7 de spec/05-reto.md (Dockerfile,
   .dockerignore, .gitignore, render.yaml, pipeline de CI en
   .github/workflows/ci.yml y scripts/smoke.py). No toca el código de la
   aplicación. Corre en paralelo con security y qa-e2e.
@@ -21,6 +21,9 @@ solo cuando una persona lo aprueba.
      `pip install -r requirements.txt`. Para e2e, corre `python -m playwright install --with-deps chromium`,
      arranca el producto con `MODEL_PROVIDER=fake` y una clave de prueba, y pasa esa misma clave en `E2E_API_KEY`.
    - `product/scripts/smoke.py`.
+   - Si te piden el punto 7 de `spec/05-reto.md`: `--workers ${WEB_CONCURRENCY:-1}` en el `CMD` del Dockerfile y
+     las variables nuevas de `render.yaml`, con `LANGSMITH_API_KEY` como secreto (`sync: false`) y
+     `LANGSMITH_PROJECT` igual al nombre del repositorio.
 3. Revisa que `product/requirements.txt` tenga lo que el contenedor y el CI necesitan. Si falta algo, dilo en tu
    resumen: ese archivo no es tuyo.
 

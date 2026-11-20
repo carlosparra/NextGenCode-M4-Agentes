@@ -7,11 +7,15 @@ import pytest
 from conftest import read_log
 
 
-def test_health_reports_ok_and_the_process_id(client):
+def test_health_reports_ok_and_the_process_id(client, settings):
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "pid": os.getpid()}
+    assert response.json() == {
+        "status": "ok",
+        "pid": os.getpid(),
+        "version": settings.app_version,
+    }
 
 
 def test_home_page_has_the_form_and_never_uses_inner_html(client):

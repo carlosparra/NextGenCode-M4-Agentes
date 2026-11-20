@@ -1,4 +1,4 @@
-# Pipeline de CI del HR Assistant (spec/04-production.md, punto 6).
+# Pipeline de CI del HR Assistant (spec/04-production.md, punto 6, y spec/05-reto.md, punto 7).
 # Cuatro etapas encadenadas: cada una corre solo si la anterior pasa.
 # Render publica solo cuando este pipeline pasa (autoDeployTrigger: checksPass).
 name: CI
@@ -95,4 +95,4 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: docker build
-        run: docker build -t hr-assistant:ci .
+        run: docker build -t hr-assistant-reto:ci .
