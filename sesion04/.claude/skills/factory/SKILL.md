@@ -1,4 +1,5 @@
 ---
+name: factory
 description: >-
   La fábrica de la sesión 4 · architect → aprobación → qa-unit → [security ∥
   deploy ∥ qa-e2e] → compuertas → qa-style → APROBACIÓN DE PUBLICAR → publish
