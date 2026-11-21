@@ -1,31 +1,13 @@
 # Sesión 5: construcción de la fábrica de iteración
 
 Este documento recoge cómo se construyó, en `sesion05/`, la parte de la fábrica que corrige desde la fuente el problema
-descrito en `desiciones.md`: que un modelo real de Cloudflare no recibía las instrucciones del agente. Los prompts
-están copiados tal como se escribieron, con sus erratas.
+descrito en [`desiciones.md`](desiciones.md): que un modelo real de Cloudflare no recibía las instrucciones del agente. Los prompts
+están copiados tal como se escribieron, con sus erratas. Se generó un nuevo skill para no romper con la fábrica, este permite iterar manteniendo las mismas condiciones.
 
 ## 1. Objetivo y resultado
 
 **Objetivo.** Que la fábrica, partiendo del `product/` con el que terminó la sesión 4, produzca por sí sola un producto
 que funcione con un modelo real, también con el pequeño. Nadie edita `product/` a mano.
-
-**Resultado.**
-
-| Qué | Dato |
-| --- | --- |
-| Producto de partida | Commit `6082a23` de `sesion04/product` (repositorio `zelski/hr-manager`) |
-| Producto resultante | Commit `245f660`, 11 archivos, 429 líneas agregadas y 23 quitadas |
-| Cambios de código | `app/agent.py` (parser tolerante y corrección) y `app/llm.py` (prompt `system`) |
-| Documentos | `doc/adr/0013`, `0014` y `0015`, y `doc/architecture.md` actualizado |
-| Pruebas nuevas | `tests/test_model_protocol.py`, `tests/test_model_protocol_steps.py`, `tests/features/model_protocol.feature` |
-| Verificación `unit` | 147 pruebas pasan, cobertura de 97,7 % (comprobado al preparar este documento) |
-| Verificación `contract` | 4 de 4 pasan (comprobado al preparar este documento) |
-| Revisión de `qa-style` | `APROBADO`, pylint 10,00/10 |
-| Aprobaciones | `output/approved.txt`: «2026-11-20T01:22:24-06:00 Aprobado por la persona» |
-| Producción | https://hr-manager-lks0.onrender.com/ (captura en `evidencia-produccion.png`, sección 7) |
-| Prueba de humo | `verification production`: 3 de 3 (`/health` 200, `/ask` sin clave 401, `/ask` con clave 200) |
-| Correlación traza-log | El mismo `request_id` en el log de Render (`audit`, `agent_run` y `request`) y en LangSmith; modelo `llama-3.1-8b-instruct-fast`, 2 pasos, 782 tokens de entrada, 892 ms (captura `evidencia-render-log.png`, `reporte.md` 2.2) |
-| LangSmith | Trazas del producto desplegado con el commit `245f660`: árbol `agent_run` > `model_call` > `get_employee` > `model_call` (captura en `evidencia-langsmith.png`, ver `reporte.md` 2.1); `Input` y `Output` de `model_call` y de `agent_run` vacíos (`evidencia-langsmith-privacidad.png` y `evidencia-langsmith-agent-run.png`) |
 
 ## 2. Punto de partida y restricciones
 
@@ -322,17 +304,3 @@ Ingeniera, Ingeniería`). Conviene un ejemplo que no se pueda confundir con dato
    `uv run python -m verification production <url>`.
 6. Abrir la página, escribir la clave y preguntar «¿Quién es EMP-0004?» con el modelo pequeño: debe contestar con
    Jorge Díaz.
-
-## 9. Lecciones
-
-- **Un modelo simulado esconde los problemas del real.** Si todas las compuertas usan el simulado, ninguna puede
-  detectar que al modelo real no se le dieron las instrucciones. Ahora hay una compuerta que simula a Cloudflare sin
-  tocar el producto.
-- **Probar el rojo antes de construir.** Correr el contrato contra el producto sin arreglos demostró que la verificación
-  habría atrapado el fallo original.
-- **La especificación manda.** El mismo agente que escribió `GatewayModel` replicó el cuerpo literal de la spec 03.
-  Corregir la fuente es lo que evita que vuelva a pasar.
-- **Los modelos pequeños necesitan un agente tolerante.** Instrucciones mejores ayudan, pero el agente debe leer con
-  tolerancia y corregir, y no repetir la misma petición.
-- **Separar «funciona» de «la fábrica lo produce».** Primero se arregló a mano para confirmarlo con el modelo real y
-  luego se descartó ese código para que la fábrica lo reconstruyera.
