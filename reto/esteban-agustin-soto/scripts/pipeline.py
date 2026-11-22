@@ -65,6 +65,26 @@ def last_activity(events: list[dict], agent: str, since: datetime) -> datetime:
     return max(times, default=since)
 
 
+def parse_events(lines: list[str]) -> list[dict]:
+    """Lee las líneas JSON de la bitácora y descarta las dañadas.
+
+    Con agentes en paralelo, dos escrituras simultáneas pueden dejar un
+    fragmento suelto; una línea así no es un evento y no debe romper el dibujo.
+
+    :param lines: Líneas de la bitácora
+    :type lines: list[str]
+    :return: Los eventos que son JSON válido
+    :rtype: list[dict]
+    """
+    events = []
+    for line in lines:
+        try:
+            events.append(json.loads(line))
+        except ValueError:
+            continue
+    return events
+
+
 def steps(lines: list[str]) -> list[dict]:
     """Pasos del orquestador con su duración en segundos.
 
@@ -76,7 +96,7 @@ def steps(lines: list[str]) -> list[dict]:
     :return: Pasos con ``name``, ``ok``, ``launch``, ``is_agent`` y ``seconds``
     :rtype: list[dict]
     """
-    events = [json.loads(line) for line in lines if line.strip()]
+    events = parse_events(lines)
     for event in events:
         event["time"] = datetime.fromisoformat(event["ts"])
     found, previous_any, previous_orchestrator = [], None, None

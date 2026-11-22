@@ -76,6 +76,15 @@ flowchart LR
   s71["developer<br/>61 s"]:::ok
   s72["qa-style<br/>46 s"]:::ok
   s73["verify evaluate<br/>29 s"]:::ok
+  s74["architect<br/>104 s"]:::ok
+  s75["verify scripts<br/>287 s"]:::ok
+  s76["qa-unit<br/>300 s"]:::ok
+  s77["verify qa<br/>16 s"]:::ok
+  s78["verify qa<br/>26 s"]:::ok
+  s79["deploy<br/>61 s"]:::ok
+  s80["verify unit<br/>32 s"]:::ok
+  s81["security<br/>72 s"]:::ok
+  s82["qa-style<br/>74 s"]:::ok
   s0 --> s1
   s1 --> s2
   s1 --> s3
@@ -158,6 +167,15 @@ flowchart LR
   s70 --> s72
   s71 --> s72
   s72 --> s73
+  s73 --> s74
+  s74 --> s75
+  s75 --> s76
+  s76 --> s77
+  s77 --> s78
+  s78 --> s79
+  s79 --> s80
+  s80 --> s81
+  s81 --> s82
   classDef ok fill:#d4f4dd,stroke:#1e7b3a
   classDef fail fill:#fde2e2,stroke:#a12a2a
 ```
@@ -238,3 +256,12 @@ flowchart LR
 | 72 | developer | pasó | 61 |
 | 73 | qa-style | pasó | 46 |
 | 74 | verify evaluate | pasó | 29 |
+| 75 | architect | pasó | 104 |
+| 76 | verify scripts | pasó | 287 |
+| 77 | qa-unit | pasó | 300 |
+| 78 | verify qa | pasó | 16 |
+| 79 | verify qa | pasó | 26 |
+| 80 | deploy | pasó | 61 |
+| 81 | verify unit | pasó | 32 |
+| 82 | security | pasó | 72 |
+| 83 | qa-style | pasó | 74 |

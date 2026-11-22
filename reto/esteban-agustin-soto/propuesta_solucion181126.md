@@ -13,7 +13,7 @@ El HR Assistant **ya está desplegado en Render** (servicio web con contenedor D
 Cloudflare Workers AI a través de AI Gateway, trazas en LangSmith) y pasa una prueba de humo
 contra la URL pública. Por eso esta propuesta no es una migración: documenta la solución que ya
 existe, señala lo que el reto exige y todavía no está cubierto, y propone cómo cerrarlo y cómo
-demostrarlo. Ya se cerraron cuatro huecos, con verificación en producción o medición real:
+demostrarlo. Ya se cerraron cinco huecos, con verificación en producción o medición real:
 
 - **Detección de datos sensibles (PII)**, sesión 5: la CURP y el correo electrónico (México) se
   enmascaran en todas las salidas (sección 4.5 y `spec/05-pii.md`).
@@ -23,9 +23,11 @@ demostrarlo. Ya se cerraron cuatro huecos, con verificación en producción o me
   perder calidad, y con la caché del gateway un 94,6 % (sección 4.3).
 - **Concurrencia**, sesión 6: prueba de carga por escalones, local y en Render con el
   modelo real (sección 4.1).
+- **Prueba de humo automática**, sesión 7: el flujo `smoke.yml` la corre en GitHub Actions, a
+  mano y una vez al día, con seis comprobaciones (sección 5).
 
-El hueco que queda es la **entrega**: automatizar la prueba de humo, recortar el token de
-Cloudflare, validar el contenido de las salidas, grabar el video y preparar el Pull Request.
+El hueco que queda es la **entrega**: recortar el token de Cloudflare, validar el tamaño
+de las salidas, grabar el video y preparar el Pull Request.
 
 Hay límites que dependen del **plan de Render** (varias instancias, escalado automático, retención
 de logs, envío de logs a un tercero). Cada vez que una capacidad depende del plan se marca como
@@ -325,17 +327,26 @@ El pipeline actual tiene cuatro etapas encadenadas en GitHub Actions: `style` (p
 columnas), `unit` (con cobertura mínima de 80 %), `e2e` (Playwright sobre Chromium) y `docker`
 (construye la imagen). Render publica solo cuando pasan.
 
-Hoy la **prueba de humo se corre a mano** (`uv run python -m verification production <url>`, con la
-clave en `SMOKE_API_KEY`). Propuesta para automatizarla:
+La **prueba de humo** corre sola desde la sesión 7 (`scripts/smoke.py` y el flujo
+`.github/workflows/smoke.yml`, `spec/07-smoke-ci.md`):
 
-1. Un flujo de GitHub Actions `smoke.yml`, con `workflow_dispatch` y opcionalmente una ejecución
-   programada, que corre la misma prueba contra la URL de Render con la clave guardada como secreto
-   de GitHub, nunca en el chat ni en el repositorio.
-2. La prueba tiene un tiempo máximo de 90 s, suficiente para despertar un servicio dormido.
+1. El flujo `Smoke` se dispara a mano y una vez al día (13:17 UTC). No se dispara con `push` ni
+   al terminar el CI, porque GitHub no sabe cuándo termina de desplegar Render; se lanza a
+   mano tras publicar. Permisos de solo lectura, tope de 5 minutos y concurrencia sin cancelar.
+2. La clave llega como el secreto de repositorio `SMOKE_API_KEY` y la dirección como la variable
+   de repositorio `SERVICE_URL`; nunca están en el archivo ni se imprimen. La prueba espera hasta
+   90 s por llamada, suficiente para despertar un servicio dormido.
 3. Las seis comprobaciones: `/health` 200, `/openapi.json` público que describe `/ask` y
    `/health`, `/ask` sin clave 401, `/ask` con clave 200, la respuesta trae al empleado (detecta
    el caso en que el agente falla con código 200) y la respuesta a una pregunta con una CURP y un
    correo inventados no los repite.
+
+Verificada en producción: la corrida manual del flujo `Smoke` terminó en `success` con las seis comprobaciones en `[OK]` (la clave aparece enmascarada como `***` en el registro). Las dos corridas anteriores fallaron con código 2 porque la clave y la variable se habían creado dentro de un Environment y no a nivel de repositorio; el script no imprimió ningún valor.
+
+Hay dos copias de la lógica (la del producto y `verification/production.py`, la de la fábrica); la
+prueba `tests/test_smoke_parity.py` exige que den el mismo veredicto. Cada corrida despierta el
+servicio del plan `free` y hace dos llamadas al modelo, y GitHub desactiva los flujos
+programados tras 60 días sin actividad.
 
 La publicación conserva la **aprobación humana** de la fábrica: el `git push` que redespliega solo
 ocurre tras pedir permiso a la persona.
@@ -352,7 +363,7 @@ Pocos y pequeños. Siguen el flujo de la fábrica: pruebas en rojo primero, desp
 | `/docs` público, esquema OpenAPI completo y README | Cumplir y controlar la documentación OpenAPI | `developer` y `security` | Hecho, sesión 6 |
 | Comprobación de `/openapi.json` en la prueba de humo | Comprobar la documentación pública en producción | el supervisor | Hecho, sesión 6 |
 | Modelo de respuesta con límites de tamaño | Validar el contenido de las salidas | `security` | Pendiente |
-| `smoke.yml` en `.github/workflows/` | Prueba de humo automática | `deploy` | Pendiente |
+| `smoke.yml` en `.github/workflows/` y `scripts/smoke.py` con seis comprobaciones | Prueba de humo automática | `qa-unit` y `deploy` | Hecho, sesión 7 |
 
 ## 7. Costos y trade-offs de la plataforma
 
@@ -383,8 +394,8 @@ Como el despliegue ya existe, el tiempo se va en cerrar huecos y reunir evidenci
 | Cierre | 3:20 a 4:00 | README, diagramas, video de 5 minutos y Pull Request |
 
 Ya están hechos el bloque de PII, el de `cost_usd` y `/docs`, la medición con el modelo real
-y la prueba de carga. Quedan el recorte del token, `smoke.yml` y el cierre. Si falta tiempo,
-la automatización es lo primero que se deja fuera.
+y la prueba de carga. Quedan el recorte del token, la validación del tamaño de las salidas y el cierre. Si falta
+tiempo, lo primero que se deja fuera es la validación del tamaño de las salidas.
 
 ## 9. Evidencia
 
@@ -406,6 +417,8 @@ la automatización es lo primero que se deja fuera.
   `output/evaluate-real.md`.
 - Captura del panel de AI Gateway (`AIGatewayAnalitycs.jpeg`): confirma el consumo y el costo
   de la medición con el modelo real.
+- Prueba de humo automática en GitHub Actions (`smoke.yml`), con una corrida manual en `success`
+  y seis comprobaciones en `[OK]`.
 - Prueba de carga por escalones: local (`output/load-local.md`) y Render con el modelo real
   (`output/load-render.md`).
 - Historial de la puesta en producción en `output/report.md`: tres defectos encontrados y

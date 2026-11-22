@@ -209,3 +209,101 @@ Las pruebas de contrato de `verification/` (cost_usd del log igual al de `/ask`;
 - `/docs` carga su interfaz desde un CDN: sin red la página puede no verse, pero `/openapi.json` sigue sirviendo; por eso no hay prueba e2e y el esquema se comprueba por contrato.
 - Esquema que se aleja de la realidad con el tiempo: la prueba de claves de `AskResponse` contra la respuesta real lo atrapa.
 - `cost_usd` en el log permite sumar el gasto desde Render; no lleva datos de la persona, solo el número, y el log ya enmascara PII.
+
+## Sesion 7: prueba de humo automatica en GitHub Actions
+
+Parte de las sesiones 1 a 6, que siguen igual. No cambia `app/`, `ci.yml`, `render.yaml` ni el `Dockerfile`. `scripts/smoke.py` pasa de tres a seis comprobaciones y un flujo nuevo lo corre solo, con la clave en un secreto de GitHub. Esta sesión reemplaza el punto 8 de `spec/04-production.md` (que no se toca). Decisión en ADR 0015.
+
+### 1. Como queda `scripts/smoke.py`
+
+Autocontenido: solo `httpx` y la biblioteca estándar. Código en inglés, docstrings Sphinx en español (`:param:`, `:type:`, `:return:`, `:rtype:`), líneas de 88 columnas como máximo.
+
+Constantes de módulo (los mismos valores que `verification/production.py`):
+- `QUESTION`: `{"question": "¿Quién es EMP-0004?"}`.
+- `EMPLOYEE_NAME` («Jorge Díaz»), `FAILURE_PREFIX` («No pude completar»), `FAKE_CURP` (`AAAA010101HDFBBB09`), `FAKE_EMAIL` (`persona.prueba@example.com`), `DOCUMENTED_PATHS` (`/ask` y `/health`), `PII_QUESTION` (la pregunta con ambos datos) y `TIMEOUT_SECONDS` (90). Sin números mágicos en el cuerpo de las funciones.
+
+Funciones, cada una corta y con una sola tarea (así `too-many-locals`, `too-many-statements` y `too-many-return-statements` no saltan):
+- `has_employee(response)`: 200, `answer` es texto, nombra a «Jorge Díaz» y no empieza con el mensaje de fallo; JSON roto o sin `answer` da `False`.
+- `documents_api(response)`: 200 y `paths` es un diccionario que contiene `/ask` y `/health`; JSON roto da `False`.
+- `masks_personal_data(response)`: 200 y el cuerpo, en minúsculas, no trae la CURP ni el correo en minúsculas.
+- `_show(name, passed, detail)` y `_show_status(name, expected, response)`: imprimen `[OK]` o `[FAIL]` con el nombre y solo el código de estado; nunca el cuerpo.
+- `smoke(url, key, client)`: las seis comprobaciones en el orden de la spec (health, openapi, `/ask` sin clave, `/ask` con clave y código, `/ask` con clave y empleado, datos personales). Reutiliza la misma respuesta de `/ask` con clave para las comprobaciones 4 y 5 (dos llamadas al modelo en total). Evalúa las seis siempre (sin cortar en la primera falla) y devuelve `all(results)`.
+- `main(args)`: lee `SMOKE_API_KEY` del entorno (nunca de un argumento); devuelve `2` si no hay exactamente un argumento, si la URL queda vacía tras quitar espacios y barra final, o si falta la clave; abre `httpx.Client(timeout=TIMEOUT_SECONDS)`; captura `httpx.HTTPError` e imprime solo el nombre de la clase del error (nunca la petición ni encabezados) y devuelve `1`. `0` si todo pasa y `1` si algo falla.
+
+Una URL vacía importa: el flujo pasa `"$SERVICE_URL"` entre comillas, así que una variable sin crear llega como un argumento vacío y debe dar `2`, no un error de `httpx`.
+
+Reutiliza de `verification/production.py`, copiando y sin importar: las constantes, las tres funciones de veredicto y su estructura. Cambia solo el formato de las líneas (el del producto es el que ya tenía: `[OK] nombre: código (esperado N)`). `pylint` con las opciones del CI da 10 porque cada función tiene docstring, no hay variables sin uso ni importaciones sobrantes y ninguna línea pasa de 88. Nota: el trabajo `style` del CI solo revisa `app` y `tests`; `scripts/` lo revisa `qa-style` con las mismas opciones.
+
+Riesgo de las dos copias: pueden separarse (por ejemplo, una cambia el mensaje de fallo y la otra no). Lo cubre la prueba de paridad del supervisor (punto 5): mismas respuestas simuladas, mismo veredicto en cada una de las seis comprobaciones. No compara el texto impreso, solo el resultado `True` o `False`.
+
+### 2. `.github/workflows/smoke.yml`
+
+Contenido, línea por línea en prosa:
+- `name: Smoke`.
+- `on`: `workflow_dispatch` (sin entradas) y `schedule` con un solo cron, `17 13 * * *` (13:17 UTC, cada día). Ninguna otra clave: ni `push`, ni `pull_request`, ni `workflow_run`. Razón de la hora: GitHub retrasa o descarta las corridas programadas en las horas redondas por la carga; el minuto 17 evita ese pico. 13:17 UTC son las 07:17 en Ciudad de México (UTC-6, sin horario de verano), antes de la jornada de RH, y aleja la corrida de los despliegues habituales. GitHub usa siempre UTC.
+- `permissions: contents: read`.
+- `concurrency`: grupo fijo (por ejemplo `smoke`) y `cancel-in-progress: false`: una corrida manual no cancela la programada.
+- Un solo trabajo `smoke` en `ubuntu-latest` con `timeout-minutes: 5`.
+- Pasos: `actions/checkout@v5`; `actions/setup-python@v6` con `python-version: "3.12"` (las mismas versiones que `ci.yml`); `pip install httpx`; un paso que corre `python scripts/smoke.py "$SERVICE_URL"`.
+- Llegada de los datos: el último paso trae `env` con `SMOKE_API_KEY: ${{ secrets.SMOKE_API_KEY }}` y `SERVICE_URL: ${{ vars.SERVICE_URL }}`. Las expresiones van en `env` y no dentro del comando, para que el valor nunca se interpole en el texto del script. Ningún valor escrito en el archivo, sin `set -x`, sin `echo` de la clave, sin `run` con `env` ni `printenv`. El paso de `pip install` no lleva `env` con la clave (mínimo alcance).
+- Si el script sale con `1` o `2`, el paso falla, el trabajo falla y GitHub avisa por correo.
+
+Riesgos:
+- Clave filtrada en los registros: GitHub enmascara los secretos en el registro, pero el enmascarado es solo de coincidencia exacta. Por eso el script nunca imprime la clave, la respuesta ni los datos inventados (lo prueban qa-unit y el supervisor), y el flujo no usa `set -x`. La clave de la prueba de humo es de un cliente propio en `API_KEYS`, con nombre que la identifica, para poder revocarla sin afectar a otros.
+- URL vacía o secreto sin crear: ambos llegan como texto vacío; el script da `2` y el trabajo falla en rojo con el mensaje de uso, en vez de pasar en falso.
+- Servicio dormido (plan `free`): `/health` va primero para despertarlo; el tiempo máximo es 90 s por petición y 5 minutos por trabajo. Si Render tarda más de lo previsto, el trabajo falla y se relanza a mano; se documenta como falla esperable.
+- Flujos programados que GitHub desactiva a los 60 días sin actividad: no hay forma de evitarlo desde el código. Se documenta en el README y en el ADR: reactivar el flujo en la pestaña Actions o con una confirmación en el repositorio. Además, `schedule` solo corre desde la rama predeterminada, y `workflow_dispatch` solo aparece si el archivo está en ella.
+- Costo: cada corrida hace dos llamadas al modelo (centavos o menos) y despierta el servicio.
+- Cambio de nombre de la variable o del secreto: el contrato `SMOKE_API_KEY` y `SERVICE_URL` queda fijo en este plan.
+
+### 3. Pruebas de qa-unit (rojas primero, en `product/tests/`)
+
+Sin dependencias nuevas: solo `pytest`, `httpx` (ya en el producto), `importlib`, `pathlib` y `re`.
+
+- Cargar `scripts/smoke.py` sin que `scripts/` sea un paquete: un helper (en `conftest.py` solo si hace falta, mejor dentro del archivo de pruebas) usa `importlib.util.spec_from_file_location` con la ruta `Path(__file__).resolve().parents[1] / "scripts" / "smoke.py"`, `module_from_spec` y `exec_module`. No toca `sys.path` ni agrega `__init__.py`. Las pruebas llaman a `smoke(url, key, client)` con un `httpx.Client(transport=httpx.MockTransport(handler))`, y a `main` con `monkeypatch` del entorno y, para el caso completo, de `httpx.Client` del módulo cargado.
+- `tests/test_smoke_script.py`:
+  - Servidor simulado correcto: `smoke` da `True` y salen seis líneas `[OK]` (se cuenta con `capsys`).
+  - Una falla por escenario, cada una con exactamente un `[FAIL]` y resultado `False`: `/health` distinto de 200; `/openapi.json` sin 200; esquema sin `/ask`; esquema sin `/health`; `/ask` sin clave distinto de 401; `/ask` con clave distinto de 200; respuesta sin «Jorge Díaz»; respuesta que es el mensaje de fallo; respuesta con la CURP; con el correo; ambos en otra combinación de mayúsculas; la pregunta con datos personales da 500 o 502; JSON roto en `/ask`.
+  - Orden: `/health` es la primera petición que recibe el servidor simulado.
+  - Nunca imprime: con la respuesta simulada llena de la CURP, el correo, la clave y un texto de respuesta, la salida de `capsys` no contiene ninguno de los cuatro.
+  - `main`: sin `SMOKE_API_KEY` da `2`; sin argumento da `2`; con dos argumentos da `2`; con URL vacía da `2`; con la clave en el argumento no se usa (la clave solo se lee del entorno); un `httpx.ConnectError` da `1` y no imprime la clave; todo bien da `0`; una falla da `1`.
+  - Tiempo máximo: la constante `TIMEOUT_SECONDS` vale 90 y el cliente que arma `main` se crea con ese valor.
+- `tests/test_smoke_workflow.py`: lee `.github/workflows/smoke.yml` como texto, sin analizador de YAML (PyYAML no es dependencia), con expresiones regulares y buscando líneas:
+  - tiene `workflow_dispatch` y `schedule` con un `cron`; no tiene `push`, `pull_request` ni `workflow_run`;
+  - usa `secrets.SMOKE_API_KEY` y `vars.SERVICE_URL`;
+  - tiene `permissions:` con `contents: read` y `timeout-minutes:`;
+  - tiene `concurrency:` y `cancel-in-progress: false`;
+  - usa `python scripts/smoke.py` y las mismas versiones de `actions/checkout` y `actions/setup-python` que `ci.yml`;
+  - no contiene `set -x`, ni `echo` de la clave, ni `printenv`, ni ninguna cadena larga que parezca una clave escrita (después de `SMOKE_API_KEY:` solo puede ir la expresión `${{ secrets.SMOKE_API_KEY }}`) ni una URL `https://` escrita.
+- Suposición: la sintaxis real del YAML la valida el supervisor con un analizador, fuera del producto.
+
+### 4. Archivos de `product/` por agente
+
+- `qa-unit` (solo `product/tests/`): `tests/test_smoke_script.py` y `tests/test_smoke_workflow.py` (nuevos, rojos primero). No edita pruebas existentes; si `test_production.py` comprobaba las tres comprobaciones, lo reporta.
+- `deploy` (dueño de ambos archivos): `scripts/smoke.py` (reescritura de seis comprobaciones, como en el punto 1; el archivo existe y lo lee completo antes de cambiarlo) y `.github/workflows/smoke.yml` (nuevo). No toca `ci.yml`, `render.yaml` ni el `Dockerfile`.
+- `security` (`README.md`, `doc/compliance-checklist.md`): en la checklist, una fila nueva: la clave de la prueba de humo es un secreto de GitHub (`secrets.SMOKE_API_KEY`), no está en el repositorio ni en el flujo, el script nunca la imprime; con su lugar (`.github/workflows/smoke.yml`, `scripts/smoke.py`) y su prueba (`tests/test_smoke_workflow.py`, `tests/test_smoke_script.py`). En el README, la parte de acceso: crear el secreto, crear la variable, quién ve el secreto y usar una clave de cliente propia que se pueda revocar.
+- Sección «Prueba de humo» del README: la edita `security`, porque `deploy` no tiene permiso de escribir `README.md` (`hooks/permissions.py`). Con `Edit`, sobre esa sección y sin tocar el resto: reemplaza las tres comprobaciones por las seis, explica el flujo (disparadores, hora del cron en UTC, que no corre tras cada despliegue), cómo crear `SMOKE_API_KEY` (Settings > Secrets and variables > Actions > Secrets) y `SERVICE_URL` (la pestaña Variables), cómo lanzarlo a mano (Actions > Smoke > Run workflow), el límite de 60 días y que se quita la frase de que la fábrica tiene cinco comprobaciones (ahora ambas tienen seis). Sin valores de ejemplo reales. `security` corre después de `deploy`, para describir lo que quedó escrito.
+- `architect` (este plan): `product/doc/adr/0015-scheduled-smoke-in-github-actions.md` y `product/doc/architecture.md` (solo las líneas necesarias, con `Edit`: la frase de la sesión 7, un bloque en «Publicación» y la lista de archivos fuera de `app/`).
+- Sin cambios: `developer`, `observability`, `costs`, `qa-e2e`. Nada de `app/`.
+
+### 5. Lo que actualiza el supervisor (fuera de `product/`)
+
+- `tests/` de la fábrica: prueba de paridad (por ejemplo `tests/test_smoke_parity.py`). Carga `product/scripts/smoke.py` con `importlib` por ruta y `verification/production.py` por su módulo, arma las mismas respuestas simuladas con `httpx.MockTransport` y exige el mismo veredicto en las seis comprobaciones (todo bien y una falla por comprobación, también CURP y correo en mayúsculas distintas, mensaje de fallo, esquema sin una ruta). Además compara las constantes (`FAKE_CURP`, `FAKE_EMAIL`, `EMPLOYEE_NAME`, `FAILURE_PREFIX`, `DOCUMENTED_PATHS`). Compara el resultado, no el texto impreso.
+- `verification/` : sin cambios en `production.py` (la spec lo dice). Si el `verify.py` o `verification contract` miraban las tres comprobaciones del script del producto, se ajustan allí.
+- Validación del YAML con un analizador, fuera del producto y antes de la aprobación.
+- `spec/04-production.md` no se toca: la spec 07 lo reemplaza.
+
+### Riesgos de la sesión y como se cubren
+
+- Dos copias de la lógica que se separan: prueba de paridad y constantes comparadas (puntos 1 y 5).
+- Clave en registros o en el repositorio: secreto de GitHub, script que no imprime, prueba de texto sobre el YAML y revisión de `security`.
+- Pasar en falso: URL vacía o clave ausente dan `2`; las seis comprobaciones se evalúan todas y el código del flujo es el del script.
+- Se dispara con el despliegue por error: el YAML no tiene `push`, `pull_request` ni `workflow_run`, y una prueba lo exige. El servicio anterior también responde `200`, por eso se lanza a mano tras publicar.
+- Falsas alarmas por servicio dormido: `/health` primero, 90 s por petición y 5 minutos por trabajo.
+- Corridas programadas que se apagan a los 60 días: documentado; se reactivan a mano. La comprobación del día siguiente a la publicación detecta que no corrió.
+- Reescribir `scripts/smoke.py` rompe una prueba existente (`tests/test_production.py`): se reporta, no se ajusta en silencio.
+- `pylint` no baja de 10 en `scripts/smoke.py`: funciones pequeñas con docstring, sin importaciones sobrantes; lo revisa `qa-style`.
+
+### Nota sobre la entrega
+
+El archivo irá en `product/.github/workflows/smoke.yml`. `product/` es la raíz del repositorio `hr-assistant` que publica `scripts/publish.py`; GitHub solo ejecuta flujos de `.github/workflows/` en la raíz del repositorio. En el fork de la clase (donde `product/` es una subcarpeta) el archivo queda inerte: no corre, no necesita el secreto y no falla. Solo cuenta en `hr-assistant`, donde la persona debe crear el secreto y la variable tras la aprobación y lanzarlo a mano con su permiso. Antes de esa creación, una corrida daría `2` en rojo; es lo esperado.

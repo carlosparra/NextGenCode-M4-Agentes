@@ -1,0 +1,39 @@
+# Prueba de humo programada contra el servicio publicado.
+# No se dispara con push, con pull request ni al terminar el CI: GitHub no sabe
+# cuando Render termina de desplegar. Se lanza a mano tras publicar y corre una
+# vez al dia. La clave y la direccion viven en GitHub, nunca en este archivo.
+name: Smoke
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 13:17 UTC (07:17 en Ciudad de Mexico); el minuto 17 evita el pico de las
+    # horas redondas
+    - cron: "17 13 * * *"
+
+permissions:
+  contents: read
+
+# Una corrida manual no cancela la programada, ni al reves
+concurrency:
+  group: smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Instalar httpx
+        run: pip install httpx
+      # La clave y la direccion entran solo por env, no dentro del comando
+      - name: Prueba de humo
+        env:
+          SMOKE_API_KEY: ${{ secrets.SMOKE_API_KEY }}
+          SERVICE_URL: ${{ vars.SERVICE_URL }}
+        run: python scripts/smoke.py "$SERVICE_URL"

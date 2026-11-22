@@ -245,15 +245,62 @@ para que no quede en el historial) y corre:
 SMOKE_API_KEY=<clave> python scripts/smoke.py https://<tu-servicio>.onrender.com
 ```
 
-Comprueba `GET /health` (200), `POST /ask` sin clave (401) y `POST /ask` con
-clave (200); imprime `[OK]` o `[FAIL]` por cada una. Sale con 0 si todo pasa,
-1 si algo falla y 2 si falta la URL o `SMOKE_API_KEY`. Render puede tardar hasta
-un minuto en despertar un servicio dormido.
+Corre seis comprobaciones y las evalúa todas, sin cortar en la primera falla:
 
-Este es `scripts/smoke.py` del repositorio, con sus tres comprobaciones. La
-fábrica tiene su propia prueba, `verification production`, con cinco: las tres
-anteriores, que la respuesta trae al empleado, y que una pregunta con una CURP
-y un correo inventados no los recibe de vuelta.
+1. `GET /health` responde 200.
+2. `GET /openapi.json` (sin clave) responde 200 y describe `/ask` y `/health`.
+3. `POST /ask` sin clave responde 401.
+4. `POST /ask` con clave responde 200.
+5. Esa misma respuesta nombra al empleado preguntado (`EMP-0004`, Jorge Díaz) y
+   no es el mensaje fijo de fallo.
+6. Una pregunta con una CURP y un correo inventados responde 200 y no los
+   devuelve.
+
+Imprime `[OK]` o `[FAIL]` por cada una, solo con nombres y códigos de estado:
+nunca la respuesta, la clave, la dirección ni los datos inventados. Sale con 0
+si todo pasa, 1 si algo falla (o la red falla) y 2 si falta la URL o
+`SMOKE_API_KEY`. Hace dos llamadas al modelo por corrida.
+
+La fábrica tiene su propia prueba, `verification production`, que comprueba lo
+mismo contra el servicio publicado desde su lado.
+
+#### Ejecución automática (`smoke.yml`)
+
+`.github/workflows/smoke.yml` (flujo `Smoke`) corre `scripts/smoke.py` en
+GitHub Actions de dos formas: a mano (`workflow_dispatch`) y una vez al día a
+las 13:17 UTC. **No** corre tras cada despliegue, ni con `push` ni con
+`pull_request`: GitHub no sabe cuándo Render termina de desplegar, y una prueba
+lanzada demasiado pronto fallaría contra la versión anterior. Tras publicar, se
+lanza a mano.
+
+Antes del primer uso, en GitHub (Settings > Secrets and variables > Actions):
+
+- Pestaña *Secrets*, secreto de repositorio `SMOKE_API_KEY`: la clave de un
+  cliente de `API_KEYS`. Pega el valor solo en ese campo de GitHub.
+- Pestaña *Variables*, variable de repositorio `SERVICE_URL`: la dirección base
+  del servicio, sin barra final (`https://<tu-servicio>.onrender.com`).
+
+Ningún valor real se escribe en el repositorio ni en el flujo: la clave y la
+dirección entran al paso solo por variables de entorno y el flujo pide el
+permiso mínimo (`contents: read`).
+
+Para lanzarlo a mano: pestaña Actions > Smoke > Run workflow, o desde la
+terminal `gh workflow run smoke.yml`. Para leer el resultado, abre la corrida y
+el paso «Prueba de humo»: cada comprobación aparece como `[OK]` o `[FAIL]`; si
+alguna falla, la corrida termina en rojo y GitHub avisa por correo a quien la
+lanzó o programó.
+
+Límites:
+
+- Despierta el servicio del plan free de Render, que puede tardar hasta un
+  minuto; el script espera hasta 90 segundos por llamada y el trabajo tiene tope
+  de 5 minutos.
+- Gasta dos llamadas al modelo por corrida, es decir, unas dos al día más las
+  manuales.
+- GitHub desactiva los flujos programados de un repositorio tras 60 días sin
+  actividad; hay que reactivarlo en la pestaña Actions.
+- La variable `SERVICE_URL` no es secreta: GitHub la muestra en el encabezado
+  del paso. Usa solo la dirección pública del servicio.
 
 El diseño de la publicación está en `doc/architecture.md`.
 

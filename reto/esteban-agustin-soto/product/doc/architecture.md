@@ -1,6 +1,6 @@
 # Arquitectura del HR Assistant
 
-API FastAPI sin estado con un solo agente, un modelo detrás de una interfaz y un directorio de solo lectura. Desde la sesión 2 cada petición lleva un `request_id`, deja un log JSON y alimenta métricas. Desde la sesión 3 un enrutador elige el modelo por pregunta, el modelo real se usa por AI Gateway y cada respuesta informa su costo. Desde la sesión 4 el acceso exige una clave por cliente, hay un límite de peticiones, la configuración de producción se verifica al arrancar y el producto se publica en Render solo si el pipeline pasa. Desde la sesión 5 la CURP y el correo se enmascaran en la pregunta, el historial, la respuesta y el log. Desde la sesión 6 el evento `agent_run` trae `cost_usd` (el mismo número que devuelve `/ask`) y la documentación OpenAPI es pública. Decisiones en `adr/`.
+API FastAPI sin estado con un solo agente, un modelo detrás de una interfaz y un directorio de solo lectura. Desde la sesión 2 cada petición lleva un `request_id`, deja un log JSON y alimenta métricas. Desde la sesión 3 un enrutador elige el modelo por pregunta, el modelo real se usa por AI Gateway y cada respuesta informa su costo. Desde la sesión 4 el acceso exige una clave por cliente, hay un límite de peticiones, la configuración de producción se verifica al arrancar y el producto se publica en Render solo si el pipeline pasa. Desde la sesión 5 la CURP y el correo se enmascaran en la pregunta, el historial, la respuesta y el log. Desde la sesión 6 el evento `agent_run` trae `cost_usd` (el mismo número que devuelve `/ask`) y la documentación OpenAPI es pública. Desde la sesión 7 un flujo de GitHub Actions corre cada día `scripts/smoke.py` (seis comprobaciones) con la clave en un secreto de GitHub. Decisiones en `adr/`.
 
 ```mermaid
 flowchart LR
@@ -55,6 +55,8 @@ flowchart LR
     DK -->|checksPass| RD[Render: render.yaml, docker, plan free]
     RD --> H[/health]
     RD --> SM[scripts/smoke.py con SMOKE_API_KEY]
+    GH[smoke.yml: manual y cron diario 13:17 UTC] -->|secrets.SMOKE_API_KEY, vars.SERVICE_URL| SM
+    SM -->|seis comprobaciones| RD
 ```
 
 ## Módulos
@@ -72,4 +74,4 @@ flowchart LR
 - `main.py`: middleware, autenticación, rutas `/`, `/health`, `/ask`, `/metrics`; `401`, `429` y `502`; arma la función de costo del agente y documenta la API en OpenAPI; los metadatos salen de `api_docs.py` (ADR 0014).
 - `api_docs.py`: metadatos de la API, modelos `AskRequest`, `AskResponse` y de errores, respuestas por ruta y el esquema de seguridad con el encabezado `X-API-Key`; solo describe, no cambia el comportamiento (ADR 0014).
 - `static/index.html`: interfaz web con campo de clave en `sessionStorage`; muestra `request_id`, modelo y costo.
-- Fuera de `app/`: `Dockerfile`, `.dockerignore`, `.github/workflows/ci.yml`, `render.yaml`, `scripts/smoke.py` y `doc/compliance-checklist.md`.
+- Fuera de `app/`: `Dockerfile`, `.dockerignore`, `.github/workflows/ci.yml`, `.github/workflows/smoke.yml` (prueba de humo manual y diaria, ADR 0015), `render.yaml`, `scripts/smoke.py` (seis comprobaciones) y `doc/compliance-checklist.md`.

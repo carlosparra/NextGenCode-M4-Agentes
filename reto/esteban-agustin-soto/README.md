@@ -16,8 +16,8 @@ Lo que todavía falta está en la sección «Qué falta», al final.
 
 | Carpeta o archivo | Qué contiene |
 | --- | --- |
-| `product/` | El HR Assistant: `app/` (FastAPI), `tests/` (unitarias y BDD), `e2e/` (Playwright), `doc/` (arquitectura y ADR 0001 a 0014), `Dockerfile`, `render.yaml` y el CI de GitHub Actions |
-| `spec/` | Lo que debe hacer el producto, una especificación por sesión (`01` a `06`) |
+| `product/` | El HR Assistant: `app/` (FastAPI), `tests/` (unitarias y BDD), `e2e/` (Playwright), `doc/` (arquitectura y ADR 0001 a 0015), `Dockerfile`, `render.yaml` y el CI de GitHub Actions |
+| `spec/` | Lo que debe hacer el producto, una especificación por sesión (`01` a `07`) |
 | `.claude/`, `hooks/` | Los agentes de la fábrica y los hooks que los controlan (`permissions.py`, `activity_log.py`) |
 | `verification/`, `scripts/`, `tests/` | Las compuertas que decide el código: `unit`, `contract`, `qa`, `e2e`, `evaluate`, `production`, y la prueba de carga |
 | `output/` | Lo que dejó la fábrica: `report.md`, `plan.md`, `qa-review.md`, `triage.md`, `pipeline.md` y las mediciones |
@@ -47,7 +47,7 @@ herramientas del directorio. El detalle y los diagramas por módulo están en
 
 | Requisito | Estado | Evidencia |
 | --- | --- | --- |
-| Despliegue y API con health check | Cumple | Servicio en Render; `GET /health`; `render.yaml`; CI de cuatro etapas; prueba de humo de seis comprobaciones |
+| Despliegue y API con health check | Cumple | Servicio en Render; `GET /health`; `render.yaml`; CI de cuatro etapas; prueba de humo de seis comprobaciones, manual y automática en GitHub Actions |
 | Documentación de la API | Cumple | `/docs`, `/redoc` y `/openapi.json` públicos, con las cuatro rutas y los errores 401, 422, 429 y 502 |
 | Concurrencia | Cumple con límite | [`output/load-local.md`](output/load-local.md) y [`output/load-render.md`](output/load-render.md) |
 | Observabilidad | Cumple | Log JSON con `request_id` y `client`, auditoría de herramientas, `/metrics` con p95 y SLO, trazas de LangSmith, `cost_usd` por petición |
@@ -83,8 +83,9 @@ valores de prueba y un evento `pii_masked` solo con conteos
 ([`evidencias/render-log-sesion5-pii.txt`](evidencias/render-log-sesion5-pii.txt)). Límites aceptados: variantes
 ofuscadas y una CURP pegada a otras letras no se detectan.
 
-**Pruebas.** 282 unitarias (95,31 % de cobertura), 28 de contrato, 7 de punta a punta, pylint 10,00/10 y 94
-pruebas de las herramientas de la fábrica.
+**Prueba de humo automática.** El flujo `Smoke` de GitHub Actions corre `scripts/smoke.py` a mano y una vez al día, con la clave en un secreto del repositorio. Una corrida manual terminó en `success` con las seis comprobaciones en `[OK]` y la clave enmascarada en el registro ([`evidencias/github-actions-smoke-sesion7.txt`](evidencias/github-actions-smoke-sesion7.txt)).
+
+**Pruebas.** 307 unitarias (95,31 % de cobertura), 28 de contrato, 7 de punta a punta, pylint 10,00/10 y 115 pruebas de las herramientas de la fábrica.
 
 ## Cómo se construyó, por sesión
 
@@ -95,6 +96,7 @@ pruebas de las herramientas de la fábrica.
 5. PII: enmascarado de CURP y correo (`spec/05-pii.md`).
 6. Costo por petición en el log y documentación pública (`spec/06-cost-and-docs.md`), más la medición con el
    modelo real y la prueba de carga.
+7. Prueba de humo automática en GitHub Actions (`spec/07-smoke-ci.md`).
 
 Todo bucle tiene tope (2 rechazos del plan, 2 correcciones, 2 vueltas de `qa-style`) y la bitácora completa está
 en [`output/report.md`](output/report.md), con los defectos que el modelo real destapó y cómo se diagnosticaron
@@ -121,10 +123,10 @@ terminal (variables `SMOKE_API_KEY`, `CF_ACCOUNT_ID` y `CF_API_TOKEN`); nunca va
 Se entrega como borrador y se completa en este mismo PR:
 
 - **Video de demostración** de 5 minutos como máximo.
-- **Prueba de humo automática** en GitHub Actions (`smoke.yml`): hoy se corre a mano.
 - **Recorte del token de Cloudflare** a `AI Gateway: Run` y `Workers AI: Read`; hoy tiene además `Workers AI: Edit`.
 - **Validación del tamaño de la respuesta** del modelo.
 - **Captura del panel de AI Gateway** (se agrega a `evidencias/`).
+- **Defecto conocido de la fábrica:** la bitácora `output/activity.jsonl` puede dejar una línea dañada cuando dos agentes escriben a la vez en Windows. Se mitigó al leerla; la escritura sigue sin ser atómica.
 
 ## Límites conocidos
 

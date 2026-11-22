@@ -105,3 +105,8 @@ def test_pipeline_writes_the_markdown(tmp_path, monkeypatch):
     monkeypatch.setattr(pipeline, "PIPELINE", tmp_path / "pipeline.md")
     assert pipeline.main() == 0
     assert "verify unit" in (tmp_path / "pipeline.md").read_text(encoding="utf-8")
+
+
+def test_pipeline_skips_corrupted_log_lines():
+    broken = [*LINES[:2], ": true}", *LINES[2:], "{\"ts\": "]
+    assert pipeline.steps(broken) == pipeline.steps(LINES)

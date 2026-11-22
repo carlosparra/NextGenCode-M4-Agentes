@@ -1,10 +1,10 @@
-# Reporte de la fábrica (sesión 6: costo por petición y documentación pública)
+# Reporte de la fábrica (sesión 7: prueba de humo automática)
 
 **Estado: LISTA**
 
 URL pública: https://hr-assistant-lhob.onrender.com
 
-Repositorio privado: https://github.com/eagussot-dot/hr-assistant (rama `main`, último commit `4d0d4fa`).
+Repositorio privado: https://github.com/eagussot-dot/hr-assistant (rama `main`, último commit `5e4cd1d`).
 
 Confirmado con la prueba de humo de seis comprobaciones, que la persona corrió contra el servicio publicado (`4d0d4fa`) con `[OK] production`. La segunda comprueba que `/openapi.json` es público y describe `/ask` y `/health`; la sexta envía una CURP y un correo inventados y comprueba que la respuesta no los trae.
 
@@ -168,10 +168,12 @@ y un escalón final que lo supera a propósito; `output/load-render.md`):
 32. Medición con el modelo real: se agregó el modo `--real` a `evaluate` (pruebas en rojo primero; sin credenciales solo nombra las variables que faltan, nunca imprime valores; opción de certificados del sistema para el producto). La persona lo corrió con sus credenciales: las palancas bajan el costo un 83,7 % sin perder calidad (100 % en las tres configuraciones, 0 errores) y la caché del gateway un 94,6 %. Los tokens de entrada solo bajan un 5,3 %: el ahorro viene sobre todo del enrutamiento.
 33. Captura del panel de AI Gateway (`AIGatewayAnalitycs.jpeg`, aportada por la persona): 168 peticiones, 0 errores y 34 aciertos de caché en 24 horas; el costo de `llama-3.3-70b` (0,0085 USD) coincide con las tres corridas del baseline. El panel incluye otros modelos que el producto no usa, de pruebas anteriores, así que su total (0,02 USD) no es el costo de la medición.
 34. Prueba de carga: se escribió `verification/load.py` y `verification/locustfile.py` (pruebas en rojo primero) y se midió en local (modelo simulado, hasta 100 usuarios) y en Render con el modelo real. Tres fallos propios de la herramienta, corregidos en el camino: Locust escribe `N/A` en escalones sin peticiones terminadas; `truststore` choca con `gevent` en HTTPS y dejó los escalones en cero sin avisar (ahora se usa el contexto de certificados del sistema y se imprimen las excepciones de Locust); y `/metrics` cuenta contra el límite por cliente, así que la lectura final espera un minuto y reintenta. Resultado: el servicio responde `429` sin caerse al superar el límite, y con 1 a 3 usuarios el p95 es de 1,1 a 1,2 s.
+35. Sesión 7 (prueba de humo automática): `spec/07-smoke-ci.md` y plan de `architect` (ADR 0015), aprobados por la persona. `qa-unit` escribió 25 pruebas en rojo (el script y el YAML como texto) y el supervisor 20 de paridad entre `product/scripts/smoke.py` y `verification/production.py`. Corrección 1 de 2 (dos avisos de pylint en las pruebas). `deploy` reescribió `scripts/smoke.py` (seis comprobaciones) y creó `smoke.yml` (manual y diario a las 13:17 UTC, permisos de solo lectura, clave por `env` desde un secreto). `security` actualizó el README y el checklist. `qa-style`: `APROBADO` en la vuelta 1. Compuertas: `unit` 307 pruebas (95,31 %), `contract` 28, `qa` 10,00, `e2e` 7, `verify.py` 114 pruebas.
+36. Publicación aprobada por la persona (`5e4cd1d`). La primera corrida del flujo falló dos veces con código 2: la clave y la variable estaban en un Environment y no a nivel de repositorio, y el script no imprimió ningún valor. Corregida la configuración, la corrida manual terminó en `success` con seis `[OK]`.
 
 ## Hallazgos abiertos (no bloquean el cierre)
 
-- `hooks/activity_log.py` no escribe de forma atómica: con agentes en paralelo puede dejar una línea suelta en `output/activity.jsonl` y romper `scripts/pipeline.py`. Pendiente de decidir.
+- `hooks/activity_log.py` no escribe de forma atómica: con agentes en paralelo dos escrituras simultáneas pueden dejar un fragmento suelto en `output/activity.jsonl` (pasó en la sesión 7: una línea de 7 caracteres). Mitigado al leer: `scripts/pipeline.py` descarta las líneas que no son JSON (prueba en `tests/test_activity_log.py`). La causa, la escritura no atómica en Windows, sigue abierta.
 - `verification/production.py` no usa el almacén de certificados de Windows. En redes que interceptan TLS hay que pasar `truststore` en el comando. Hacerlo permanente toca el juez de la fábrica y lo decide la persona.
 - `Dockerfile`: pip avisa de que corre como `root` al construir la imagen. Es solo un aviso; se quitaría con `--root-user-action=ignore`.
 - RESUELTO a petición de la persona: la prueba de humo solo miraba el código HTTP. El defecto del agente lo demostró: la página devolvía «No pude completar la respuesta» y la prueba daba `[OK]`. Ahora `verification/production.py` añade una cuarta comprobación: la respuesta de `/ask` con clave debe nombrar a «Jorge Díaz» y no ser el mensaje de fallo (nunca imprime la respuesta). Con 9 pruebas en `tests/test_production.py`, escritas en rojo antes del cambio. La prueba de humo pasa a tener cuatro líneas `[OK]`; la corrida anterior (tres `[OK]`) es de antes de este cambio y hay que repetirla.
