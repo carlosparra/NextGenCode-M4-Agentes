@@ -1,0 +1,81 @@
+# Pipeline de CI: style -> unit -> e2e -> docker
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  style:
+    name: style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+      # Mantener estas opciones iguales a PYLINT en verification/qa.py
+      - name: Pylint con 88 columnas
+        run: >-
+          python -m pylint app tests --max-line-length=88 --fail-under=10
+          --disable=missing-function-docstring,redefined-outer-name,too-few-public-methods
+
+  unit:
+    name: unit
+    needs: style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+      - name: Pruebas y BDD con cobertura minima de 80 %
+        run: python -m pytest tests --cov=app --cov-fail-under=80
+
+  e2e:
+    name: e2e
+    needs: unit
+    runs-on: ubuntu-latest
+    env:
+      # Clave de prueba de ejemplo: no es un secreto real
+      E2E_API_KEY: ci-test-key-0123456789
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+      - name: Instalar Chromium para Playwright
+        run: python -m playwright install --with-deps chromium
+      - name: Arrancar el producto con el modelo simulado
+        env:
+          MODEL_PROVIDER: fake
+          API_KEYS: ci:ci-test-key-0123456789
+          RATE_LIMIT_PER_MINUTE: "1000"
+        run: |
+          python -m uvicorn app.main:app --port 8000 &
+          for i in $(seq 1 40); do
+            curl -fs http://127.0.0.1:8000/health && exit 0
+            sleep 0.5
+          done
+          echo "El producto no arranco" >&2
+          exit 1
+      - name: Pruebas de punta a punta
+        run: python -m pytest e2e --base-url http://127.0.0.1:8000
+
+  docker:
+    name: docker
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Construir la imagen
+        run: docker build -t hr-assistant .

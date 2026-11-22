@@ -1,0 +1,12 @@
+Prueba de humo automatica en GitHub Actions (flujo Smoke, repositorio hr-assistant)
+Corrida 44986930122, disparada a mano; resultado: success.
+La clave aparece enmascarada (***) en el registro. Solo se copian las lineas de comprobacion.
+
+  SMOKE_API_KEY: ***
+  SERVICE_URL: https://hr-assistant-lhob.onrender.com
+[OK] GET /health: 200 (esperado 200)
+[OK] GET /openapi.json: la documentación describe /ask y /health
+[OK] POST /ask sin clave: 401 (esperado 401)
+[OK] POST /ask con clave: 200 (esperado 200)
+[OK] POST /ask con clave: la respuesta trae al empleado
+[OK] POST /ask con datos personales: la respuesta no los trae

@@ -1,0 +1,300 @@
+2026-11-22T00:39:25.04586631Z INFO:     10.28.181.142:0 - "GET /openapi.json HTTP/1.1" 200 OK
+2026-11-22T00:39:27.500969297Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.637, "ts": "2026-11-22T00:39:27.500725+00:00", "service": "hr-assistant", "event": "request", "request_id": "91545a41-2a9a-43e6-b4df-fe74bac4c461"}
+2026-11-22T00:39:27.501062613Z INFO:     10.238.25.218:59054 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:39:32.496103968Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.597, "ts": "2026-11-22T00:39:32.495928+00:00", "service": "hr-assistant", "event": "request", "request_id": "f7cf5b5b-a3a0-4133-adbd-562f66719a3a"}
+2026-11-22T00:39:32.496181453Z INFO:     10.238.25.218:59060 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:39:32.501416604Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.724, "ts": "2026-11-22T00:39:32.501270+00:00", "service": "hr-assistant", "event": "request", "request_id": "3341153a-b933-4040-96fd-1ea001c6e55f"}
+2026-11-22T00:39:32.501502129Z INFO:     10.238.25.218:59064 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:39:37.501926717Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.535, "ts": "2026-11-22T00:39:37.501777+00:00", "service": "hr-assistant", "event": "request", "request_id": "2ac2b068-74dc-4a8e-a01b-be76cfc4a4c1"}
+2026-11-22T00:39:37.502028003Z INFO:     10.238.25.218:55870 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:39:42.502378791Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.789, "ts": "2026-11-22T00:39:42.502208+00:00", "service": "hr-assistant", "event": "request", "request_id": "3d0abcd3-5767-40fd-b43b-ccb4228cf122"}
+2026-11-22T00:39:42.502511229Z INFO:     10.238.25.218:55882 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:39:47.501830708Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.638, "ts": "2026-11-22T00:39:47.501628+00:00", "service": "hr-assistant", "event": "request", "request_id": "19bcc0e8-ed1f-49fd-83ee-5a50e3d83d16"}
+2026-11-22T00:39:47.501905722Z INFO:     10.238.25.218:42814 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:39:52.501756863Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.551, "ts": "2026-11-22T00:39:52.501559+00:00", "service": "hr-assistant", "event": "request", "request_id": "d4cb928d-fa88-42cf-81c2-ad015babe6d1"}
+2026-11-22T00:39:52.501836718Z INFO:     10.238.25.218:42816 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:39:57.501313686Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.584, "ts": "2026-11-22T00:39:57.501141+00:00", "service": "hr-assistant", "event": "request", "request_id": "26b2b756-0161-450e-bd0d-c2c83a0b952e"}
+2026-11-22T00:39:57.50137731Z INFO:     10.238.25.218:40534 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:40:02.496209861Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.679, "ts": "2026-11-22T00:40:02.496011+00:00", "service": "hr-assistant", "event": "request", "request_id": "7c7daa7d-4c58-4c36-bc57-937c91122b7f"}
+2026-11-22T00:40:02.496307657Z INFO:     10.238.25.218:40540 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:40:02.501379361Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.577, "ts": "2026-11-22T00:40:02.501219+00:00", "service": "hr-assistant", "event": "request", "request_id": "7a44cd7b-4a79-4a70-843f-497da64ff21d"}
+2026-11-22T00:40:02.501462476Z INFO:     10.238.25.218:40552 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:40:07.50278571Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.668, "ts": "2026-11-22T00:40:07.502105+00:00", "service": "hr-assistant", "event": "request", "request_id": "92e0a15f-3113-4343-938c-bf73c088c3b9"}
+2026-11-22T00:40:07.502808632Z INFO:     10.238.25.218:41300 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:40:12.501513944Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.655, "ts": "2026-11-22T00:40:12.501341+00:00", "service": "hr-assistant", "event": "request", "request_id": "24ba37c8-fa4b-41cd-9e55-35ccf5f40dad"}
+2026-11-22T00:40:12.501604219Z INFO:     10.238.25.218:41308 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:40:17.504965875Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 1.852, "ts": "2026-11-22T00:40:17.504380+00:00", "service": "hr-assistant", "event": "request", "request_id": "685f99f1-0733-4eb0-880f-732ee8e74ae1"}
+2026-11-22T00:40:17.505022838Z INFO:     10.238.25.218:52302 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:40:22.500931317Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.533, "ts": "2026-11-22T00:40:22.500696+00:00", "service": "hr-assistant", "event": "request", "request_id": "f14bf1f4-665f-40e8-bc2d-638cdafa2fe0"}
+2026-11-22T00:40:22.501004382Z INFO:     10.238.25.218:52318 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:40:27.501879917Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.603, "ts": "2026-11-22T00:40:27.501711+00:00", "service": "hr-assistant", "event": "request", "request_id": "9aab7cbd-76b1-4c1d-b5d7-f26bdb90cbf8"}
+2026-11-22T00:40:27.501976972Z INFO:     10.238.25.218:33582 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:40:32.496636146Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.713, "ts": "2026-11-22T00:40:32.496419+00:00", "service": "hr-assistant", "event": "request", "request_id": "318e6591-a56d-49a0-8c58-0aefe9783754"}
+2026-11-22T00:40:32.496750173Z INFO:     10.238.25.218:33584 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:40:32.500772611Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.444, "ts": "2026-11-22T00:40:32.500583+00:00", "service": "hr-assistant", "event": "request", "request_id": "479dd9d2-1ef1-44fc-b37c-68d9d4e5e33d"}
+2026-11-22T00:40:32.500889018Z INFO:     10.238.25.218:33588 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:40:37.502031596Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.586, "ts": "2026-11-22T00:40:37.501872+00:00", "service": "hr-assistant", "event": "request", "request_id": "0a963591-e4c7-47ec-8f5b-1397e1ab8bca"}
+2026-11-22T00:40:37.502085409Z INFO:     10.238.25.218:35934 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:40:42.503756699Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.862, "ts": "2026-11-22T00:40:42.503232+00:00", "service": "hr-assistant", "event": "request", "request_id": "3dd9abb1-8e93-4a50-96f6-5db1946feaa6"}
+2026-11-22T00:40:42.503785981Z INFO:     10.238.25.218:35940 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:40:47.501455884Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.622, "ts": "2026-11-22T00:40:47.501275+00:00", "service": "hr-assistant", "event": "request", "request_id": "9ec2680f-34e7-4c5e-b122-061edce81726"}
+2026-11-22T00:40:47.502226101Z INFO:     10.238.25.218:41124 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:40:52.502027504Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.608, "ts": "2026-11-22T00:40:52.501883+00:00", "service": "hr-assistant", "event": "request", "request_id": "4c9529e2-4063-4040-9b35-09ee3e66bf2a"}
+2026-11-22T00:40:52.50213591Z INFO:     10.238.25.218:41134 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:40:57.501273063Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.628, "ts": "2026-11-22T00:40:57.501148+00:00", "service": "hr-assistant", "event": "request", "request_id": "395c9533-789a-4b27-8c93-6594a93df9eb"}
+2026-11-22T00:40:57.50139467Z INFO:     10.238.25.218:36770 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:02.496609077Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.681, "ts": "2026-11-22T00:41:02.496430+00:00", "service": "hr-assistant", "event": "request", "request_id": "ce7b1140-f9cf-4f7d-ba47-ed85749c5158"}
+2026-11-22T00:41:02.496673861Z INFO:     10.238.25.218:36786 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:02.50103649Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.637, "ts": "2026-11-22T00:41:02.500884+00:00", "service": "hr-assistant", "event": "request", "request_id": "25b45471-15c4-4786-abe4-1480f148fb53"}
+2026-11-22T00:41:02.501103344Z INFO:     10.238.25.218:36798 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:07.502850241Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.874, "ts": "2026-11-22T00:41:07.502278+00:00", "service": "hr-assistant", "event": "request", "request_id": "b9f53ce0-84e4-4a64-871a-76c054c5832e"}
+2026-11-22T00:41:07.502917085Z INFO:     10.238.25.218:42688 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:12.502450256Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.706, "ts": "2026-11-22T00:41:12.502256+00:00", "service": "hr-assistant", "event": "request", "request_id": "f16599b9-3726-4cb9-9762-ac104b764e0e"}
+2026-11-22T00:41:12.503243885Z INFO:     10.238.25.218:42696 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:12.507885031Z {"method": "GET", "path": "/", "status": 200, "latency_ms": 0.911, "ts": "2026-11-22T00:41:12.507721+00:00", "service": "hr-assistant", "event": "request", "request_id": "821e9a6a-75bc-46a1-a15f-3df246bc7984"}
+2026-11-22T00:41:12.507994868Z INFO:     10.28.181.142:0 - "GET / HTTP/1.1" 200 OK
+2026-11-22T00:41:17.501607543Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.582, "ts": "2026-11-22T00:41:17.501429+00:00", "service": "hr-assistant", "event": "request", "request_id": "a491c255-d47f-4fbb-81ca-960ec2b21129"}
+2026-11-22T00:41:17.501651676Z INFO:     10.238.25.218:39092 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:18.603881851Z ==> Detected service running on port 10000
+2026-11-22T00:41:18.667308358Z ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+2026-11-22T00:41:22.517679574Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.99, "ts": "2026-11-22T00:41:22.517432+00:00", "service": "hr-assistant", "event": "request", "request_id": "39ed349f-abb5-4278-9904-6126c1cc63e0"}
+2026-11-22T00:41:22.521366552Z INFO:     10.238.25.218:39108 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:27.501694039Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.557, "ts": "2026-11-22T00:41:27.501533+00:00", "service": "hr-assistant", "event": "request", "request_id": "6f7a6ab7-613d-49e2-a37d-e569b49dcb86"}
+2026-11-22T00:41:27.501808086Z INFO:     10.238.25.218:40232 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:27.996851219Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.656, "ts": "2026-11-22T00:41:27.996659+00:00", "service": "hr-assistant", "event": "request", "request_id": "3a62f960-5f06-4eb6-929b-3d2623e1f842"}
+2026-11-22T00:41:27.996965506Z INFO:     10.30.101.5:0 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:28.172549209Z {"method": "GET", "path": "/openapi.json", "status": 200, "latency_ms": 0.396, "ts": "2026-11-22T00:41:28.172377+00:00", "service": "hr-assistant", "event": "request", "request_id": "80725e51-86e5-4550-95ea-e1d089f887b5"}
+2026-11-22T00:41:28.172593892Z INFO:     10.28.181.142:0 - "GET /openapi.json HTTP/1.1" 200 OK
+2026-11-22T00:41:28.278098634Z {"method": "POST", "path": "/ask", "status": 401, "latency_ms": 1.212, "ts": "2026-11-22T00:41:28.277942+00:00", "service": "hr-assistant", "event": "request", "request_id": "93ed2830-58d9-4750-b4b9-0e2a383add1f"}
+2026-11-22T00:41:28.27818217Z INFO:     10.30.101.5:0 - "POST /ask HTTP/1.1" 401 Unauthorized
+2026-11-22T00:41:28.982370674Z {"action": "tool_call", "tool": "get_employee", "args": {"employee_id": "EMP-0004"}, "ts": "2026-11-22T00:41:28.982184+00:00", "service": "hr-assistant", "event": "audit", "request_id": "852f36e9-a783-4db8-90e2-6bdc2a43c997", "client": "hr-portal"}
+2026-11-22T00:41:29.597538118Z {"question_chars": 19, "history_messages": 0, "steps": 2, "tools": ["get_employee"], "input_tokens": 473, "output_tokens": 73, "stopped": "answer", "model": "@cf/meta/llama-3.1-8b-instruct-fast", "route": "simple", "cached_calls": 0, "cost_usd": 4.9317e-05, "ts": "2026-11-22T00:41:29.597309+00:00", "service": "hr-assistant", "event": "agent_run", "request_id": "852f36e9-a783-4db8-90e2-6bdc2a43c997", "client": "hr-portal"}
+2026-11-22T00:41:29.598001216Z {"method": "POST", "path": "/ask", "status": 200, "latency_ms": 1201.028, "ts": "2026-11-22T00:41:29.597885+00:00", "service": "hr-assistant", "event": "request", "request_id": "852f36e9-a783-4db8-90e2-6bdc2a43c997", "client": "hr-portal"}
+2026-11-22T00:41:29.598119033Z INFO:     10.30.101.5:0 - "POST /ask HTTP/1.1" 200 OK
+2026-11-22T00:41:29.715914214Z {"action": "pii_masked", "where": "question", "curp": 1, "email": 1, "ts": "2026-11-22T00:41:29.715751+00:00", "service": "hr-assistant", "event": "audit", "request_id": "57cae574-c37c-46f9-be4b-080d13ca53c9", "client": "hr-portal"}
+2026-11-22T00:41:30.105811649Z {"action": "tool_call", "tool": "get_employee", "args": {"employee_id": "[CURP]"}, "ts": "2026-11-22T00:41:30.105595+00:00", "service": "hr-assistant", "event": "audit", "request_id": "57cae574-c37c-46f9-be4b-080d13ca53c9", "client": "hr-portal"}
+2026-11-22T00:41:30.640353641Z {"question_chars": 53, "history_messages": 0, "steps": 2, "tools": ["get_employee"], "input_tokens": 449, "output_tokens": 79, "stopped": "answer", "model": "@cf/meta/llama-3.1-8b-instruct-fast", "route": "simple", "cached_calls": 0, "cost_usd": 5.0540999999999996e-05, "ts": "2026-11-22T00:41:30.640159+00:00", "service": "hr-assistant", "event": "agent_run", "request_id": "57cae574-c37c-46f9-be4b-080d13ca53c9", "client": "hr-portal"}
+2026-11-22T00:41:30.640948188Z {"method": "POST", "path": "/ask", "status": 200, "latency_ms": 925.805, "ts": "2026-11-22T00:41:30.640789+00:00", "service": "hr-assistant", "event": "request", "request_id": "57cae574-c37c-46f9-be4b-080d13ca53c9", "client": "hr-portal"}
+2026-11-22T00:41:30.641382955Z INFO:     10.28.152.133:0 - "POST /ask HTTP/1.1" 200 OK
+2026-11-22T00:41:32.496360267Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.59, "ts": "2026-11-22T00:41:32.496162+00:00", "service": "hr-assistant", "event": "request", "request_id": "3174a9fc-4e5a-4358-9163-5083d1eb90a1"}
+2026-11-22T00:41:32.496399669Z INFO:     10.238.25.218:40240 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:32.501904639Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.615, "ts": "2026-11-22T00:41:32.501566+00:00", "service": "hr-assistant", "event": "request", "request_id": "f39914b3-5766-42b1-8b20-b7c014f05683"}
+2026-11-22T00:41:32.50192952Z INFO:     10.238.25.218:40252 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:37.501612585Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.696, "ts": "2026-11-22T00:41:37.501438+00:00", "service": "hr-assistant", "event": "request", "request_id": "862d4bc0-30e2-497f-af46-0220dc07d366"}
+2026-11-22T00:41:37.501747993Z INFO:     10.238.25.218:59804 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:42.501423547Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.641, "ts": "2026-11-22T00:41:42.501284+00:00", "service": "hr-assistant", "event": "request", "request_id": "9a185f76-7c9b-49b5-b3eb-9eda28967528"}
+2026-11-22T00:41:42.501536434Z INFO:     10.238.25.218:59818 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:47.501231769Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.604, "ts": "2026-11-22T00:41:47.501051+00:00", "service": "hr-assistant", "event": "request", "request_id": "e249f1b8-2ae8-4321-a5ee-654024b182fa"}
+2026-11-22T00:41:47.501280242Z INFO:     10.238.25.218:37546 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:52.501272913Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.588, "ts": "2026-11-22T00:41:52.501079+00:00", "service": "hr-assistant", "event": "request", "request_id": "63f02210-8511-4ef7-af74-9418261ef51c"}
+2026-11-22T00:41:52.501341677Z INFO:     10.238.25.218:37548 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:41:57.501694508Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.633, "ts": "2026-11-22T00:41:57.501557+00:00", "service": "hr-assistant", "event": "request", "request_id": "30aa04ce-128f-48df-842b-9661922bf66e"}
+2026-11-22T00:41:57.501844978Z INFO:     10.238.25.218:40326 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:42:02.497133955Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.753, "ts": "2026-11-22T00:42:02.496981+00:00", "service": "hr-assistant", "event": "request", "request_id": "c2782ff1-5582-41b0-99e2-c7c7fc12a7e2"}
+2026-11-22T00:42:02.497247572Z INFO:     10.238.25.218:40340 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:42:02.501164115Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.504, "ts": "2026-11-22T00:42:02.501030+00:00", "service": "hr-assistant", "event": "request", "request_id": "513f5460-7ab9-464a-9e00-3d2f93b8dc40"}
+2026-11-22T00:42:02.501259801Z INFO:     10.238.25.218:40344 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:42:07.501315915Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.661, "ts": "2026-11-22T00:42:07.501165+00:00", "service": "hr-assistant", "event": "request", "request_id": "24006713-ca29-48be-bdec-937d34b6b2ce"}
+2026-11-22T00:42:07.501410151Z INFO:     10.238.25.218:35800 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:42:12.501623119Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.554, "ts": "2026-11-22T00:42:12.501474+00:00", "service": "hr-assistant", "event": "request", "request_id": "b9ed492e-f169-464a-ac9c-9b3cbe022855"}
+2026-11-22T00:42:12.501694204Z INFO:     10.238.25.218:35812 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:42:17.501394366Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.665, "ts": "2026-11-22T00:42:17.501212+00:00", "service": "hr-assistant", "event": "request", "request_id": "1ef0ff6b-a4c6-4666-a47c-68ae4fc0b257"}
+2026-11-22T00:42:17.501509953Z INFO:     10.238.25.218:60592 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:42:22.501493299Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.697, "ts": "2026-11-22T00:42:22.501357+00:00", "service": "hr-assistant", "event": "request", "request_id": "3109401a-28f4-47d5-b0ff-7caec0db8a7d"}
+2026-11-22T00:42:22.501612727Z INFO:     10.238.25.218:60596 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:42:27.501702359Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.66, "ts": "2026-11-22T00:42:27.501526+00:00", "service": "hr-assistant", "event": "request", "request_id": "685c6b4c-b7a7-493c-8040-65181289cf56"}
+2026-11-22T00:42:27.501823066Z INFO:     10.238.25.218:59340 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:42:32.496560543Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.775, "ts": "2026-11-22T00:42:32.496385+00:00", "service": "hr-assistant", "event": "request", "request_id": "14615269-b588-4b33-8ac7-cf6751c80dd3"}
+2026-11-22T00:42:32.496660789Z INFO:     10.238.25.218:59352 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:42:32.5006776Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.5, "ts": "2026-11-22T00:42:32.500513+00:00", "service": "hr-assistant", "event": "request", "request_id": "8383c3ce-1966-44c4-a85a-d3dfae799eb4"}
+2026-11-22T00:42:32.500800157Z INFO:     10.238.25.218:59364 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:42:37.501347716Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.657, "ts": "2026-11-22T00:42:37.501157+00:00", "service": "hr-assistant", "event": "request", "request_id": "fbeaefc5-6cf0-4272-80df-d2d34a8f946a"}
+2026-11-22T00:42:37.501388208Z INFO:     10.238.25.218:55584 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:42:42.501650744Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.718, "ts": "2026-11-22T00:42:42.501486+00:00", "service": "hr-assistant", "event": "request", "request_id": "9970e7a8-59d2-4e19-a590-93628108bbef"}
+2026-11-22T00:42:42.501802344Z INFO:     10.238.25.218:55600 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:42:47.5120631Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.803, "ts": "2026-11-22T00:42:47.511859+00:00", "service": "hr-assistant", "event": "request", "request_id": "b7eb2644-dfa2-4a38-bef5-c2a8aebc6901"}
+2026-11-22T00:42:47.512128504Z INFO:     10.238.25.218:34620 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:42:52.501606056Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.637, "ts": "2026-11-22T00:42:52.501403+00:00", "service": "hr-assistant", "event": "request", "request_id": "f5774498-8435-441a-bdf4-8b550e99063e"}
+2026-11-22T00:42:52.501809968Z INFO:     10.238.25.218:34630 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:42:57.501978796Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.554, "ts": "2026-11-22T00:42:57.501793+00:00", "service": "hr-assistant", "event": "request", "request_id": "2c552650-fe7f-40c1-bfc1-8ef01bccf371"}
+2026-11-22T00:42:57.502073402Z INFO:     10.238.25.218:43318 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:43:02.496423745Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.591, "ts": "2026-11-22T00:43:02.496263+00:00", "service": "hr-assistant", "event": "request", "request_id": "b72c9971-7d89-457b-a6f4-6e7a5801b162"}
+2026-11-22T00:43:02.496541832Z INFO:     10.238.25.218:43324 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:43:02.501708837Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.577, "ts": "2026-11-22T00:43:02.501558+00:00", "service": "hr-assistant", "event": "request", "request_id": "72232c2a-a51e-4c90-9b77-9a876ec6f7e8"}
+2026-11-22T00:43:02.50192425Z INFO:     10.238.25.218:43328 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:43:07.501571287Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.535, "ts": "2026-11-22T00:43:07.501394+00:00", "service": "hr-assistant", "event": "request", "request_id": "fb88cb9f-7b59-492f-a3df-168ed3e721f8"}
+2026-11-22T00:43:07.501617219Z INFO:     10.238.25.218:42162 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:43:12.50183273Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.549, "ts": "2026-11-22T00:43:12.501565+00:00", "service": "hr-assistant", "event": "request", "request_id": "f49176d1-7302-42e5-b398-8f58b57a2d76"}
+2026-11-22T00:43:12.501876523Z INFO:     10.238.25.218:42174 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:43:17.501941087Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.842, "ts": "2026-11-22T00:43:17.501531+00:00", "service": "hr-assistant", "event": "request", "request_id": "74140744-03c1-4924-bd50-7ee2c4b92abc"}
+2026-11-22T00:43:17.501970469Z INFO:     10.238.25.218:43974 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:43:22.501835782Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.705, "ts": "2026-11-22T00:43:22.501466+00:00", "service": "hr-assistant", "event": "request", "request_id": "74e2bbca-cbbe-44b1-8005-67bc90b3f9e4"}
+2026-11-22T00:43:22.501862984Z INFO:     10.238.25.218:43986 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:43:27.502040604Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.617, "ts": "2026-11-22T00:43:27.501863+00:00", "service": "hr-assistant", "event": "request", "request_id": "d1215441-cffe-4625-b806-e451698caee3"}
+2026-11-22T00:43:27.502147201Z INFO:     10.238.25.218:57842 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:43:32.497053067Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.657, "ts": "2026-11-22T00:43:32.496887+00:00", "service": "hr-assistant", "event": "request", "request_id": "250b73fe-0abf-43ff-9176-8256aba2287d"}
+2026-11-22T00:43:32.497127361Z INFO:     10.238.25.218:57850 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:43:32.501083326Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.577, "ts": "2026-11-22T00:43:32.500952+00:00", "service": "hr-assistant", "event": "request", "request_id": "54b0dd9d-5606-47bb-9114-bcb43a6a71f7"}
+2026-11-22T00:43:32.50114681Z INFO:     10.238.25.218:57862 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:43:37.501626121Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.523, "ts": "2026-11-22T00:43:37.501449+00:00", "service": "hr-assistant", "event": "request", "request_id": "9d52330a-f6d7-4f32-8b2f-02bce15ea63c"}
+2026-11-22T00:43:37.501681094Z INFO:     10.238.25.218:37216 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:43:42.501891239Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.621, "ts": "2026-11-22T00:43:42.501707+00:00", "service": "hr-assistant", "event": "request", "request_id": "5a7bf099-e0b2-4460-b06a-275bf0cb18de"}
+2026-11-22T00:43:42.501976684Z INFO:     10.238.25.218:37224 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:43:47.50131332Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.626, "ts": "2026-11-22T00:43:47.501150+00:00", "service": "hr-assistant", "event": "request", "request_id": "8a77d98a-8424-4376-bf82-0fcf0772400e"}
+2026-11-22T00:43:47.501375434Z INFO:     10.238.25.218:52084 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:43:52.502144589Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.695, "ts": "2026-11-22T00:43:52.501943+00:00", "service": "hr-assistant", "event": "request", "request_id": "efa5a025-4c94-44fc-9d1a-3ffc676cdcb1"}
+2026-11-22T00:43:52.502999902Z INFO:     10.238.25.218:52100 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:43:57.501743062Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.526, "ts": "2026-11-22T00:43:57.501591+00:00", "service": "hr-assistant", "event": "request", "request_id": "726961de-ada1-4ec9-a6c5-dcb1396b6cea"}
+2026-11-22T00:43:57.501846518Z INFO:     10.238.25.218:38288 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:44:02.496521013Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.623, "ts": "2026-11-22T00:44:02.496317+00:00", "service": "hr-assistant", "event": "request", "request_id": "815c1dff-b4db-4138-9d5e-d1fa8850edf7"}
+2026-11-22T00:44:02.496610529Z INFO:     10.238.25.218:38296 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:44:02.500852191Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.519, "ts": "2026-11-22T00:44:02.500692+00:00", "service": "hr-assistant", "event": "request", "request_id": "f0f8b8c7-41a2-488f-8093-707fc89b2281"}
+2026-11-22T00:44:02.500929876Z INFO:     10.238.25.218:38312 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:44:07.506230092Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.797, "ts": "2026-11-22T00:44:07.505315+00:00", "service": "hr-assistant", "event": "request", "request_id": "59b528d7-cb77-48b0-b769-7f4a107017cb"}
+2026-11-22T00:44:07.506258364Z INFO:     10.238.25.218:56738 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:44:12.501572443Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.539, "ts": "2026-11-22T00:44:12.501406+00:00", "service": "hr-assistant", "event": "request", "request_id": "de2c24d4-ccaa-4e1b-affb-28d2a49e262b"}
+2026-11-22T00:44:12.501628157Z INFO:     10.238.25.218:56748 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:44:17.501581681Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.667, "ts": "2026-11-22T00:44:17.501419+00:00", "service": "hr-assistant", "event": "request", "request_id": "40b4d8a0-c54e-4918-ab7f-f11789cd42cf"}
+2026-11-22T00:44:17.501679387Z INFO:     10.238.25.218:54272 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:44:22.501459001Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.689, "ts": "2026-11-22T00:44:22.501318+00:00", "service": "hr-assistant", "event": "request", "request_id": "e5940bb6-84d1-4dfb-bbc3-0887595cc9fe"}
+2026-11-22T00:44:22.501576968Z INFO:     10.238.25.218:54278 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:44:27.501626409Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.573, "ts": "2026-11-22T00:44:27.501488+00:00", "service": "hr-assistant", "event": "request", "request_id": "af27d131-d378-4999-982c-9c0aba7438c1"}
+2026-11-22T00:44:27.501751896Z INFO:     10.238.25.218:47806 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:44:32.496947197Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.705, "ts": "2026-11-22T00:44:32.496703+00:00", "service": "hr-assistant", "event": "request", "request_id": "f9236def-9902-4bb1-967d-20c78d0f8de3"}
+2026-11-22T00:44:32.497052494Z INFO:     10.238.25.218:47822 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:44:32.500954825Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.564, "ts": "2026-11-22T00:44:32.500801+00:00", "service": "hr-assistant", "event": "request", "request_id": "b0f65910-cc74-49ae-987f-ac29ef0e3260"}
+2026-11-22T00:44:32.50102875Z INFO:     10.238.25.218:47838 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:44:37.501908626Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.533, "ts": "2026-11-22T00:44:37.501693+00:00", "service": "hr-assistant", "event": "request", "request_id": "245f73c8-f312-4a84-b742-33b029a33879"}
+2026-11-22T00:44:37.501949729Z INFO:     10.238.25.218:33790 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:44:42.501236796Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.611, "ts": "2026-11-22T00:44:42.501062+00:00", "service": "hr-assistant", "event": "request", "request_id": "c3850423-f9f1-47f6-80ac-02fc27bb1169"}
+2026-11-22T00:44:42.501272198Z INFO:     10.238.25.218:33804 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:44:47.50191011Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.558, "ts": "2026-11-22T00:44:47.501688+00:00", "service": "hr-assistant", "event": "request", "request_id": "bfd8f6c8-17d7-4fd2-a308-c5f6b22b533b"}
+2026-11-22T00:44:47.501990575Z INFO:     10.238.25.218:38102 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:44:52.502215305Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.608, "ts": "2026-11-22T00:44:52.502029+00:00", "service": "hr-assistant", "event": "request", "request_id": "adddbb42-0b9e-47ee-8574-2b7fe10b7535"}
+2026-11-22T00:44:52.502275958Z INFO:     10.238.25.218:38116 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:44:57.501816244Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.598, "ts": "2026-11-22T00:44:57.501638+00:00", "service": "hr-assistant", "event": "request", "request_id": "d71009df-35a1-4efa-a2f4-9f500604af7d"}
+2026-11-22T00:44:57.501925571Z INFO:     10.238.25.218:42608 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:45:02.495910442Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.565, "ts": "2026-11-22T00:45:02.495710+00:00", "service": "hr-assistant", "event": "request", "request_id": "ebe4e67f-386d-4b90-92af-6f387efcce7d"}
+2026-11-22T00:45:02.495977366Z INFO:     10.238.25.218:42620 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:45:02.501075782Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.563, "ts": "2026-11-22T00:45:02.500951+00:00", "service": "hr-assistant", "event": "request", "request_id": "e4f66563-ea56-4aa3-971d-aa4633b963dc"}
+2026-11-22T00:45:02.501172498Z INFO:     10.238.25.218:42622 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:45:07.501596523Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.596, "ts": "2026-11-22T00:45:07.501419+00:00", "service": "hr-assistant", "event": "request", "request_id": "05e5aee0-9fde-43b3-a657-088c80a9f527"}
+2026-11-22T00:45:07.50170413Z INFO:     10.238.25.218:43040 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:45:12.501498516Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.693, "ts": "2026-11-22T00:45:12.501313+00:00", "service": "hr-assistant", "event": "request", "request_id": "76e13fb2-bfe6-4d83-96d7-57776cb559f7"}
+2026-11-22T00:45:12.501586221Z INFO:     10.238.25.218:43042 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:45:17.50190176Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.686, "ts": "2026-11-22T00:45:17.501693+00:00", "service": "hr-assistant", "event": "request", "request_id": "fafcab9e-da44-4a3b-92a9-d4a56f7d724a"}
+2026-11-22T00:45:17.502008437Z INFO:     10.238.25.218:33688 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:45:22.501594477Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.672, "ts": "2026-11-22T00:45:22.501393+00:00", "service": "hr-assistant", "event": "request", "request_id": "57408727-5322-4f34-9b65-71d797e328ec"}
+2026-11-22T00:45:22.501668842Z INFO:     10.238.25.218:33698 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:45:27.501439308Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.754, "ts": "2026-11-22T00:45:27.501306+00:00", "service": "hr-assistant", "event": "request", "request_id": "6cd0e6f5-582b-4108-a329-ec33eb9ceb4a"}
+2026-11-22T00:45:27.501523953Z INFO:     10.238.25.218:37104 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:45:32.496684312Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.532, "ts": "2026-11-22T00:45:32.496519+00:00", "service": "hr-assistant", "event": "request", "request_id": "f2acea25-1b77-4aac-8979-f6cfdd934891"}
+2026-11-22T00:45:32.496819361Z INFO:     10.238.25.218:37118 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:45:32.50068461Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.478, "ts": "2026-11-22T00:45:32.500544+00:00", "service": "hr-assistant", "event": "request", "request_id": "15576cdb-3070-4326-b7a5-ba04100fc8f9"}
+2026-11-22T00:45:32.500827319Z INFO:     10.238.25.218:37126 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:45:37.503038035Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 1.145, "ts": "2026-11-22T00:45:37.502836+00:00", "service": "hr-assistant", "event": "request", "request_id": "91960a42-0904-4ee7-9f54-a19648f2fb55"}
+2026-11-22T00:45:37.503327383Z INFO:     10.238.25.218:40074 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:45:42.501793326Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.575, "ts": "2026-11-22T00:45:42.501623+00:00", "service": "hr-assistant", "event": "request", "request_id": "f9137040-9cc1-4879-a932-860cfafc93c3"}
+2026-11-22T00:45:42.501899912Z INFO:     10.238.25.218:40082 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:45:47.501779202Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.562, "ts": "2026-11-22T00:45:47.501624+00:00", "service": "hr-assistant", "event": "request", "request_id": "d4d053fa-1476-4454-b3cb-89759e487739"}
+2026-11-22T00:45:47.501883758Z INFO:     10.238.25.218:35354 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:45:52.50226604Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.718, "ts": "2026-11-22T00:45:52.502089+00:00", "service": "hr-assistant", "event": "request", "request_id": "82dec6d1-3f43-49a9-81ba-89d70ba6f618"}
+2026-11-22T00:45:52.502331174Z INFO:     10.238.25.218:35360 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:45:57.501932761Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.534, "ts": "2026-11-22T00:45:57.501723+00:00", "service": "hr-assistant", "event": "request", "request_id": "147db3ee-69c8-402f-9b9d-925f640dd250"}
+2026-11-22T00:45:57.501995435Z INFO:     10.238.25.218:44446 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:46:02.49592478Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.59, "ts": "2026-11-22T00:46:02.495727+00:00", "service": "hr-assistant", "event": "request", "request_id": "71fa6b01-12c0-418f-92fd-6d2ef6a8459f"}
+2026-11-22T00:46:02.495970063Z INFO:     10.238.25.218:44452 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:46:02.500914509Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.474, "ts": "2026-11-22T00:46:02.500783+00:00", "service": "hr-assistant", "event": "request", "request_id": "ebf5b38f-9819-4578-b08d-49f97fd6e935"}
+2026-11-22T00:46:02.501024236Z INFO:     10.238.25.218:44468 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:46:07.501057229Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.556, "ts": "2026-11-22T00:46:07.500698+00:00", "service": "hr-assistant", "event": "request", "request_id": "164177cb-3eb8-470f-bc6e-ea0f7c0e745a"}
+2026-11-22T00:46:07.501090281Z INFO:     10.238.25.218:46102 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:46:12.501938396Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.743, "ts": "2026-11-22T00:46:12.501780+00:00", "service": "hr-assistant", "event": "request", "request_id": "39386f58-c82b-40d1-a745-fc83ef00543f"}
+2026-11-22T00:46:12.502067374Z INFO:     10.238.25.218:46110 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:46:17.502153763Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.609, "ts": "2026-11-22T00:46:17.501940+00:00", "service": "hr-assistant", "event": "request", "request_id": "cffb3c8b-b24a-405c-8ede-22ad47f0024f"}
+2026-11-22T00:46:17.502203055Z INFO:     10.238.25.218:52706 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:46:22.501293351Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.75, "ts": "2026-11-22T00:46:22.501125+00:00", "service": "hr-assistant", "event": "request", "request_id": "bf178f95-1982-4131-909a-8c5434616a66"}
+2026-11-22T00:46:22.501405948Z INFO:     10.238.25.218:52708 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:46:27.50211637Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.562, "ts": "2026-11-22T00:46:27.501807+00:00", "service": "hr-assistant", "event": "request", "request_id": "fc5e0c3a-8555-41d3-8758-edfbaf2e9cd8"}
+2026-11-22T00:46:27.502137761Z INFO:     10.238.25.218:41190 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:46:32.496912529Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.657, "ts": "2026-11-22T00:46:32.496673+00:00", "service": "hr-assistant", "event": "request", "request_id": "9b07c83e-dc7b-4af2-84b0-c8a6b480e516"}
+2026-11-22T00:46:32.496966102Z INFO:     10.238.25.218:41206 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:46:32.501385595Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.682, "ts": "2026-11-22T00:46:32.501222+00:00", "service": "hr-assistant", "event": "request", "request_id": "8503bfc3-388b-44e8-b9fe-9a630f9a36cb"}
+2026-11-22T00:46:32.501504893Z INFO:     10.238.25.218:41208 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:46:37.501094367Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.655, "ts": "2026-11-22T00:46:37.500906+00:00", "service": "hr-assistant", "event": "request", "request_id": "2ea9b791-8201-4394-bd07-03a6a42d31e7"}
+2026-11-22T00:46:37.50112934Z INFO:     10.238.25.218:41672 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:46:42.501299888Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.617, "ts": "2026-11-22T00:46:42.501121+00:00", "service": "hr-assistant", "event": "request", "request_id": "65c37e27-a6ca-4757-85b5-6f3838f50f02"}
+2026-11-22T00:46:42.501363422Z INFO:     10.238.25.218:41682 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:46:47.50129693Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.605, "ts": "2026-11-22T00:46:47.501126+00:00", "service": "hr-assistant", "event": "request", "request_id": "4f9399bd-6441-472e-a65c-48c40db030cd"}
+2026-11-22T00:46:47.501335133Z INFO:     10.238.25.218:45844 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:46:52.501124963Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.645, "ts": "2026-11-22T00:46:52.500986+00:00", "service": "hr-assistant", "event": "request", "request_id": "9b3560a6-a39f-4fca-b1f2-bbd9a5317ecb"}
+2026-11-22T00:46:52.501210298Z INFO:     10.238.25.218:45852 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:46:57.502840491Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.856, "ts": "2026-11-22T00:46:57.502496+00:00", "service": "hr-assistant", "event": "request", "request_id": "9f871201-8874-41e7-860a-0de499399a46"}
+2026-11-22T00:46:57.502865343Z INFO:     10.238.25.218:57402 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:47:02.4968314Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.576, "ts": "2026-11-22T00:47:02.496602+00:00", "service": "hr-assistant", "event": "request", "request_id": "e6e7c0ef-df13-4150-8463-0919eeeb7f01"}
+2026-11-22T00:47:02.496948557Z INFO:     10.238.25.218:57418 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:47:02.50087309Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.48, "ts": "2026-11-22T00:47:02.500717+00:00", "service": "hr-assistant", "event": "request", "request_id": "caf2c61b-802c-4838-acfa-154dbef647d2"}
+2026-11-22T00:47:02.500960755Z INFO:     10.238.25.218:57428 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:47:07.501554652Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.593, "ts": "2026-11-22T00:47:07.501374+00:00", "service": "hr-assistant", "event": "request", "request_id": "79069127-584a-4556-bc18-43d3d75f9afa"}
+2026-11-22T00:47:07.501601915Z INFO:     10.238.25.218:55678 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:47:12.501800958Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.581, "ts": "2026-11-22T00:47:12.501594+00:00", "service": "hr-assistant", "event": "request", "request_id": "d9dc7c86-aecb-4984-86b5-352c2d864615"}
+2026-11-22T00:47:12.501856801Z INFO:     10.238.25.218:55684 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:47:17.501664328Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.561, "ts": "2026-11-22T00:47:17.501473+00:00", "service": "hr-assistant", "event": "request", "request_id": "89ab4e8b-69f6-4c05-892f-c1caa542adef"}
+2026-11-22T00:47:17.501709191Z INFO:     10.238.25.218:39896 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:47:22.503827381Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 1.709, "ts": "2026-11-22T00:47:22.503180+00:00", "service": "hr-assistant", "event": "request", "request_id": "2be8b88c-07f6-4edf-a64f-c9754bf81687"}
+2026-11-22T00:47:22.503854823Z INFO:     10.238.25.218:39912 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:47:27.501618644Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.607, "ts": "2026-11-22T00:47:27.501448+00:00", "service": "hr-assistant", "event": "request", "request_id": "0c73608d-a135-464a-baf3-cb6dc420e981"}
+2026-11-22T00:47:27.501781114Z INFO:     10.238.25.218:51040 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:47:32.496802172Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.964, "ts": "2026-11-22T00:47:32.496443+00:00", "service": "hr-assistant", "event": "request", "request_id": "be7f1739-9c0b-4980-b5d4-c5f59c177b89"}
+2026-11-22T00:47:32.496826943Z INFO:     10.238.25.218:51046 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:47:32.501212813Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.637, "ts": "2026-11-22T00:47:32.501066+00:00", "service": "hr-assistant", "event": "request", "request_id": "f710066d-44a7-4ccd-9c51-465abb9df492"}
+2026-11-22T00:47:32.501350311Z INFO:     10.238.25.218:51062 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:47:37.504859663Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 2.445, "ts": "2026-11-22T00:47:37.504076+00:00", "service": "hr-assistant", "event": "request", "request_id": "996dc1b1-f634-4996-bf1b-0777269ff58c"}
+2026-11-22T00:47:37.504892215Z INFO:     10.238.25.218:39268 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:47:42.501895997Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.525, "ts": "2026-11-22T00:47:42.501686+00:00", "service": "hr-assistant", "event": "request", "request_id": "f9c64644-16b7-4ebe-a2ec-fae3bb9c41d8"}
+2026-11-22T00:47:42.50194689Z INFO:     10.238.25.218:39282 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:47:47.501272699Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.705, "ts": "2026-11-22T00:47:47.501073+00:00", "service": "hr-assistant", "event": "request", "request_id": "e9a683aa-9c76-4b88-9e92-c60f13dbe3e5"}
+2026-11-22T00:47:47.501344963Z INFO:     10.238.25.218:53102 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:47:52.501787915Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.734, "ts": "2026-11-22T00:47:52.501497+00:00", "service": "hr-assistant", "event": "request", "request_id": "0acfca48-7dd1-45ca-a5c8-67d56aa0da91"}
+2026-11-22T00:47:52.501828577Z INFO:     10.238.25.218:53106 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:47:57.501626629Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.527, "ts": "2026-11-22T00:47:57.501459+00:00", "service": "hr-assistant", "event": "request", "request_id": "04eb9cbb-1327-459a-8c54-9d901bed3eb7"}
+2026-11-22T00:47:57.501689163Z INFO:     10.238.25.218:38982 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:48:02.496586742Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.564, "ts": "2026-11-22T00:48:02.496399+00:00", "service": "hr-assistant", "event": "request", "request_id": "a0a2612d-61b5-4a5a-8ef2-29dee7474464"}
+2026-11-22T00:48:02.496661796Z INFO:     10.238.25.218:38988 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:48:02.500463372Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.449, "ts": "2026-11-22T00:48:02.500323+00:00", "service": "hr-assistant", "event": "request", "request_id": "d59467ec-d6d9-4152-bbdc-1030a4423c35"}
+2026-11-22T00:48:02.500550497Z INFO:     10.238.25.218:38998 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:48:07.501723159Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.535, "ts": "2026-11-22T00:48:07.501543+00:00", "service": "hr-assistant", "event": "request", "request_id": "8e1e49fc-e147-40b3-9f7c-808118a253ca"}
+2026-11-22T00:48:07.501801564Z INFO:     10.238.25.218:46376 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:48:12.501173594Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.58, "ts": "2026-11-22T00:48:12.501016+00:00", "service": "hr-assistant", "event": "request", "request_id": "37ba006b-ec45-423a-bdfb-fd799bd6d790"}
+2026-11-22T00:48:12.501250439Z INFO:     10.238.25.218:46390 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:48:17.507878039Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 3.491, "ts": "2026-11-22T00:48:17.507200+00:00", "service": "hr-assistant", "event": "request", "request_id": "0b867966-888e-4a24-a2ca-456670d37d7e"}
+2026-11-22T00:48:17.507918581Z INFO:     10.238.25.218:52732 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:48:22.501116588Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.618, "ts": "2026-11-22T00:48:22.500922+00:00", "service": "hr-assistant", "event": "request", "request_id": "c4a0295a-154f-4d1f-a538-d5b93206de59"}
+2026-11-22T00:48:22.50116141Z INFO:     10.238.25.218:52738 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:48:27.501639144Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.548, "ts": "2026-11-22T00:48:27.501457+00:00", "service": "hr-assistant", "event": "request", "request_id": "6521692c-75d2-482a-8ee5-1908c8d16b3c"}
+2026-11-22T00:48:27.501675106Z INFO:     10.238.25.218:58632 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:48:32.496682332Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.605, "ts": "2026-11-22T00:48:32.496153+00:00", "service": "hr-assistant", "event": "request", "request_id": "8d66019f-b766-4b92-8c69-50934d6e6d14"}
+2026-11-22T00:48:32.496783848Z INFO:     10.238.25.218:58648 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:48:32.503808292Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 1.318, "ts": "2026-11-22T00:48:32.503068+00:00", "service": "hr-assistant", "event": "request", "request_id": "df5fef5c-0f52-4f34-85e4-c68a29d3ac4b"}
+2026-11-22T00:48:32.503832744Z INFO:     10.238.25.218:58654 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:48:37.5013563Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.635, "ts": "2026-11-22T00:48:37.501186+00:00", "service": "hr-assistant", "event": "request", "request_id": "78ed3e2f-7008-4de8-b035-7a7d5aec8fc7"}
+2026-11-22T00:48:37.501389832Z INFO:     10.238.25.218:57218 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:48:42.502389148Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.952, "ts": "2026-11-22T00:48:42.502218+00:00", "service": "hr-assistant", "event": "request", "request_id": "7dddfa6b-3157-444f-88cc-55d3874fa52d"}
+2026-11-22T00:48:42.502520066Z INFO:     10.238.25.218:57224 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:48:47.50122247Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.626, "ts": "2026-11-22T00:48:47.501045+00:00", "service": "hr-assistant", "event": "request", "request_id": "9b71ce0c-9daa-4f98-9b59-56117bff34d5"}
+2026-11-22T00:48:47.501329606Z INFO:     10.238.25.218:47296 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:48:52.501336623Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.616, "ts": "2026-11-22T00:48:52.501144+00:00", "service": "hr-assistant", "event": "request", "request_id": "945d5322-59bd-4f56-a0fd-bf0110317082"}
+2026-11-22T00:48:52.501374065Z INFO:     10.238.25.218:47302 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:48:57.501807953Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.574, "ts": "2026-11-22T00:48:57.501599+00:00", "service": "hr-assistant", "event": "request", "request_id": "02d146b1-ebe3-4360-a80d-bf356af7ea1c"}
+2026-11-22T00:48:57.502283972Z INFO:     10.238.25.218:36864 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:49:02.496529426Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.59, "ts": "2026-11-22T00:49:02.496365+00:00", "service": "hr-assistant", "event": "request", "request_id": "35010119-095d-4015-9d44-ee6880045ce7"}
+2026-11-22T00:49:02.496627042Z INFO:     10.238.25.218:36876 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:49:02.501521085Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.487, "ts": "2026-11-22T00:49:02.501411+00:00", "service": "hr-assistant", "event": "request", "request_id": "6ba04fdc-73f0-40ab-8ae9-cd05ee2fc32c"}
+2026-11-22T00:49:02.501592029Z INFO:     10.238.25.218:36888 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:49:07.502122998Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.669, "ts": "2026-11-22T00:49:07.501933+00:00", "service": "hr-assistant", "event": "request", "request_id": "9aa95f4f-d23d-44f5-8fab-b9f13cbb85e8"}
+2026-11-22T00:49:07.502192592Z INFO:     10.238.25.218:34068 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:49:12.501764595Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.654, "ts": "2026-11-22T00:49:12.501541+00:00", "service": "hr-assistant", "event": "request", "request_id": "160fae51-b050-4b4c-b87d-26d6be9b0874"}
+2026-11-22T00:49:12.501867001Z INFO:     10.238.25.218:34078 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:49:17.504644162Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 1.769, "ts": "2026-11-22T00:49:17.503779+00:00", "service": "hr-assistant", "event": "request", "request_id": "b04a269d-25bd-40d8-9ccd-51f77385c8bd"}
+2026-11-22T00:49:17.504675654Z INFO:     10.238.25.218:52072 - "GET /health HTTP/1.1" 200 OK
+2026-11-22T00:49:22.51739259Z {"method": "GET", "path": "/health", "status": 200, "latency_ms": 0.681, "ts": "2026-11-22T00:49:22.517177+00:00", "service": "hr-assistant", "event": "request", "request_id": "b926ca45-0255-46a6-9e84-a1a9f158041e"}
+2026-11-22T00:49:22.517492186Z INFO:     10.238.25.218:52086 - "GET /health HTTP/1.1" 200 OK

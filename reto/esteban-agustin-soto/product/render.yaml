@@ -1,0 +1,27 @@
+# Blueprint de Render: un servicio web con el mismo nombre que el repositorio
+services:
+  - type: web
+    name: hr-assistant
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    # Publica solo si el pipeline de CI pasa
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: MODEL_PROVIDER
+        value: gateway
+      - key: HIDE_INPUTS
+        value: "true"
+      - key: HIDE_OUTPUTS
+        value: "true"
+      # Secretos: se escriben en Render, nunca en el repositorio
+      - key: API_KEYS
+        sync: false
+      - key: CF_ACCOUNT_ID
+        sync: false
+      - key: CF_API_TOKEN
+        sync: false
+      # LANGSMITH_API_KEY es opcional: se agrega en Render > Environment
+      # solo si se encienden las trazas
