@@ -1,13 +1,12 @@
 APROBADO
 
-Vuelta 1 de 2 de la sesión 7. `uv run python -m verification qa` termina en `[OK] qa` (pylint 10.00/10). No hay incumplimientos claros de `QA.md`.
+Vuelta 2 de 2, sesión 8. `uv run python -m verification qa` da `[OK]` (pylint 10.00/10).
 
-Lo revisado a mano:
+Los 4 hallazgos de la vuelta 1 quedaron corregidos:
 
-- `product/scripts/smoke.py`: todas las funciones, públicas y privadas, traen docstring Sphinx completo (`:param`, `:type`, `:return`, `:rtype`). No hay `:raises` porque ninguna función lanza excepciones; `main` captura `httpx.HTTPError` y devuelve 1. Las líneas miden 88 columnas o menos y los nombres son claros. Las funciones son pequeñas, y los valores fijos (tiempo máximo, datos inventados, rutas documentadas) son constantes con nombre. El script no imprime la respuesta, la clave ni la dirección.
-- `product/.github/workflows/smoke.yml`: no tiene claves ni direcciones escritas. La clave entra por `secrets.SMOKE_API_KEY` y la dirección por `vars.SERVICE_URL`, ambas por `env`. Solo se dispara con `workflow_dispatch` y `schedule`. Tiene `permissions: contents: read`, `timeout-minutes` y concurrencia sin cancelar. Usa las mismas versiones de las acciones que `ci.yml`.
-- Documentación: `README.md`, `doc/architecture.md`, `doc/adr/0015-*.md` y `doc/compliance-checklist.md` dicen lo mismo que el código: seis comprobaciones, cron a las 13:17 UTC, secreto y variable, código de salida 2 y límites. No quedan restos de «tres comprobaciones» ni de «cinco comprobaciones». La única mención de «tres» en el ADR 0015 es histórica y describe el contexto previo. El README explica cómo crear el secreto y la variable y cómo lanzar el flujo a mano.
-- Emojis: no hay ninguno en `product/`.
-- Pruebas: `tests/test_smoke_script.py` usa un servidor simulado y prueba cada falla por separado. Cada caso exige exactamente un `[FAIL]`, así que no son triviales. También cubre el orden de las peticiones, que no se imprima nada sensible, el código de salida 2 y el error de red. `tests/test_smoke_workflow.py` revisa los disparadores, el secreto, los permisos, la ausencia de `set -x`, `echo`, URL y cadenas largas, y la paridad de versiones con `ci.yml`. Los nombres son claros y están en inglés.
+1. `product/README.md`, línea 34: la lista de eventos del log ya incluye `answer_truncated`.
+2. `product/tests/test_truncate.py`: ya no existe la prueba trivial del tipo `str` y de la entrada sin cambios.
+3. `product/tests/test_answer_limit_config.py`: se quitó la aserción redundante (queda solo `not check_production(settings)`).
+4. `ELLIPSIS` se importa de `app.truncate` en `test_answer_limit.py` (línea 15) y en `test_truncate.py` (línea 8). La única comparación con el literal `…` (línea 66 de `test_truncate.py`) es la excepción acordada.
 
-Excepciones acordadas, no reportadas: documentación y mensajes en español, y la lógica duplicada entre `product/scripts/smoke.py` y `verification/production.py`.
+Revisión general de la sesión 8: no apareció nada nuevo. El código (`truncate.py`, `_limit_answer`, `max_answer_chars`), el ADR 0016, `architecture.md`, el checklist y el README coinciden en cuanto al orden (primero enmascarar y después recortar), el límite de 1500, el marcador y el evento con solo números. El ADR sigue vigente y no hay datos personales en el log.

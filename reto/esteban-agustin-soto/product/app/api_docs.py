@@ -83,7 +83,9 @@ class AskResponse(BaseModel):
     :type cached_calls: int
     :param cost_usd: Costo de la petición en dólares
     :type cost_usd: float
-    :param answer: Respuesta ya enmascarada
+    :param answer: Respuesta del asistente. Con la configuración por omisión
+        mide como máximo 1500 caracteres; si se pasa, se recorta y termina en
+        ``…``. El límite es ``MAX_ANSWER_CHARS``
     :type answer: str
     :param steps: Vueltas del bucle del agente
     :type steps: int
@@ -102,7 +104,9 @@ class AskResponse(BaseModel):
     cached_calls: int = Field(description="Llamadas al modelo servidas desde caché.")
     cost_usd: float = Field(description="Costo de la petición en dólares.")
     answer: str = Field(
-        description="Respuesta del asistente.",
+        description="Respuesta del asistente. Con la configuración por omisión "
+        "mide como máximo 1500 caracteres; si se pasa, se recorta y termina "
+        "en …. El límite es MAX_ANSWER_CHARS.",
         examples=["EMP-0004 trabaja en Ventas."],
     )
     steps: int = Field(description="Vueltas del bucle del agente.")

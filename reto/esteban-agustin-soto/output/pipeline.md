@@ -85,6 +85,12 @@ flowchart LR
   s80["verify unit<br/>32 s"]:::ok
   s81["security<br/>72 s"]:::ok
   s82["qa-style<br/>74 s"]:::ok
+  s83["architect<br/>92 s"]:::ok
+  s84["qa-unit<br/>1021 s"]:::ok
+  s85["security<br/>534 s"]:::ok
+  s86["architect<br/>40 s"]:::ok
+  s87["qa-style<br/>78 s"]:::ok
+  s88["qa-style<br/>38 s"]:::ok
   s0 --> s1
   s1 --> s2
   s1 --> s3
@@ -176,6 +182,13 @@ flowchart LR
   s79 --> s80
   s80 --> s81
   s81 --> s82
+  s82 --> s83
+  s83 --> s84
+  s84 --> s85
+  s84 --> s86
+  s85 --> s87
+  s86 --> s87
+  s87 --> s88
   classDef ok fill:#d4f4dd,stroke:#1e7b3a
   classDef fail fill:#fde2e2,stroke:#a12a2a
 ```
@@ -265,3 +278,9 @@ flowchart LR
 | 81 | verify unit | pasó | 32 |
 | 82 | security | pasó | 72 |
 | 83 | qa-style | pasó | 74 |
+| 84 | architect | pasó | 92 |
+| 85 | qa-unit | pasó | 1021 |
+| 86 | security | pasó | 534 |
+| 87 | architect | pasó | 40 |
+| 88 | qa-style | pasó | 78 |
+| 89 | qa-style | pasó | 38 |

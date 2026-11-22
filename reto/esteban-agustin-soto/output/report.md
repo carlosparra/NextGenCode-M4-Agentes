@@ -1,10 +1,10 @@
-# Reporte de la fábrica (sesión 7: prueba de humo automática)
+# Reporte de la fábrica (sesión 8: límite de tamaño de la respuesta)
 
 **Estado: LISTA**
 
 URL pública: https://hr-assistant-lhob.onrender.com
 
-Repositorio privado: https://github.com/eagussot-dot/hr-assistant (rama `main`, último commit `5e4cd1d`).
+Repositorio privado: https://github.com/eagussot-dot/hr-assistant (rama `main`, último commit `9f7f13d`).
 
 Confirmado con la prueba de humo de seis comprobaciones, que la persona corrió contra el servicio publicado (`4d0d4fa`) con `[OK] production`. La segunda comprueba que `/openapi.json` es público y describe `/ask` y `/health`; la sexta envía una CURP y un correo inventados y comprueba que la respuesta no los trae.
 
@@ -170,6 +170,8 @@ y un escalón final que lo supera a propósito; `output/load-render.md`):
 34. Prueba de carga: se escribió `verification/load.py` y `verification/locustfile.py` (pruebas en rojo primero) y se midió en local (modelo simulado, hasta 100 usuarios) y en Render con el modelo real. Tres fallos propios de la herramienta, corregidos en el camino: Locust escribe `N/A` en escalones sin peticiones terminadas; `truststore` choca con `gevent` en HTTPS y dejó los escalones en cero sin avisar (ahora se usa el contexto de certificados del sistema y se imprimen las excepciones de Locust); y `/metrics` cuenta contra el límite por cliente, así que la lectura final espera un minuto y reintenta. Resultado: el servicio responde `429` sin caerse al superar el límite, y con 1 a 3 usuarios el p95 es de 1,1 a 1,2 s.
 35. Sesión 7 (prueba de humo automática): `spec/07-smoke-ci.md` y plan de `architect` (ADR 0015), aprobados por la persona. `qa-unit` escribió 25 pruebas en rojo (el script y el YAML como texto) y el supervisor 20 de paridad entre `product/scripts/smoke.py` y `verification/production.py`. Corrección 1 de 2 (dos avisos de pylint en las pruebas). `deploy` reescribió `scripts/smoke.py` (seis comprobaciones) y creó `smoke.yml` (manual y diario a las 13:17 UTC, permisos de solo lectura, clave por `env` desde un secreto). `security` actualizó el README y el checklist. `qa-style`: `APROBADO` en la vuelta 1. Compuertas: `unit` 307 pruebas (95,31 %), `contract` 28, `qa` 10,00, `e2e` 7, `verify.py` 114 pruebas.
 36. Publicación aprobada por la persona (`5e4cd1d`). La primera corrida del flujo falló dos veces con código 2: la clave y la variable estaban en un Environment y no a nivel de repositorio, y el script no imprimió ningún valor. Corregida la configuración, la corrida manual terminó en `success` con seis `[OK]`.
+37. Sesión 8 (límite de tamaño de la respuesta): `spec/08-answer-size.md` y plan de `architect` (ADR 0016), aprobados por la persona. Decisión: recortar y no reintentar ni reemplazar por el mensaje de fallo, y recortar DESPUÉS del enmascarado de PII (un corte antes dejaría media CURP en la respuesta). `qa-unit` escribió 40 casos en rojo y el supervisor 4 de contrato con el producto real (`MAX_ANSWER_CHARS=10`). Corrección 1 de 2: tres pruebas con datos mal armados (una CURP y un correo pegados a letras, que la especificación de la sesión 5 declara no detectables). `security` hizo el código y la documentación (`app/truncate.py`, `config.py`, `main.py`, `api_docs.py`, README y checklist). `qa-style`: `CAMBIOS` con 4 hallazgos menores (README, una prueba trivial, una aserción redundante y una constante repetida) y luego `APROBADO`. Compuertas: `unit` 345 pruebas (95,41 %), `contract` 32, `qa` 10,00, `e2e` 7, `verify.py` 115 pruebas.
+38. Publicación aprobada por la persona (`9f7f13d`). La prueba de humo automática terminó en `success`; en el log de Render hay peticiones `/ask`, `pii_masked` solo con conteos, `cost_usd` en `agent_run` y cero `answer_truncated`.
 
 ## Hallazgos abiertos (no bloquean el cierre)
 

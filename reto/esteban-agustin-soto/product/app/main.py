@@ -28,6 +28,7 @@ from app.pricing import PriceTable
 from app.router import choose_model
 from app.security import RateLimiter, authenticate
 from app.tracing import traced
+from app.truncate import limit_text
 
 INDEX_PATH = Path(__file__).resolve().parent / "static" / "index.html"
 REQUEST_ID_HEADER = "X-Request-ID"
@@ -213,6 +214,23 @@ def _mask_answer(logger, answer):
     return answer
 
 
+def _limit_answer(logger, limit, answer):
+    """Recorta la respuesta al límite y avisa solo con números.
+
+    :param logger: Logger inyectado
+    :param limit: Largo máximo de la respuesta
+    :type limit: int
+    :param answer: Respuesta ya enmascarada
+    :type answer: str
+    :return: La respuesta, recortada si se pasaba
+    :rtype: str
+    """
+    answer, original = limit_text(answer, limit)
+    if original > limit:
+        logger.log("answer_truncated", original_chars=original, limit_chars=limit)
+    return answer
+
+
 def _install_validation_masking(api):
     """Enmascara CURP y correo en el cuerpo de los 422 de validación.
 
@@ -384,6 +402,7 @@ def create_app(settings=None, *, model=None, directory=None, clock=None,
         answer = result.answer
         if settings.pii_masking:
             answer = _mask_answer(logger, answer)
+        answer = _limit_answer(logger, settings.max_answer_chars, answer)
         return {
             "model": model_name,
             "route": route,

@@ -16,8 +16,8 @@ Lo que todavía falta está en la sección «Qué falta», al final.
 
 | Carpeta o archivo | Qué contiene |
 | --- | --- |
-| `product/` | El HR Assistant: `app/` (FastAPI), `tests/` (unitarias y BDD), `e2e/` (Playwright), `doc/` (arquitectura y ADR 0001 a 0015), `Dockerfile`, `render.yaml` y el CI de GitHub Actions |
-| `spec/` | Lo que debe hacer el producto, una especificación por sesión (`01` a `07`) |
+| `product/` | El HR Assistant: `app/` (FastAPI), `tests/` (unitarias y BDD), `e2e/` (Playwright), `doc/` (arquitectura y ADR 0001 a 0016), `Dockerfile`, `render.yaml` y el CI de GitHub Actions |
+| `spec/` | Lo que debe hacer el producto, una especificación por sesión (`01` a `08`) |
 | `.claude/`, `hooks/` | Los agentes de la fábrica y los hooks que los controlan (`permissions.py`, `activity_log.py`) |
 | `verification/`, `scripts/`, `tests/` | Las compuertas que decide el código: `unit`, `contract`, `qa`, `e2e`, `evaluate`, `production`, y la prueba de carga |
 | `output/` | Lo que dejó la fábrica: `report.md`, `plan.md`, `qa-review.md`, `triage.md`, `pipeline.md` y las mediciones |
@@ -54,7 +54,7 @@ herramientas del directorio. El detalle y los diagramas por módulo están en
 | Costos con baseline | Cumple | [`output/evaluate-real.md`](output/evaluate-real.md), medido con el modelo real |
 | Seguridad | Cumple | Clave por cliente, límite de peticiones, compliance como código, enmascarado de CURP y correo |
 | Mínimo privilegio | Parcial | Contenedor sin root y claves por cliente; el token de Cloudflare tiene un permiso de más (ver «Qué falta») |
-| Validación de salidas | Parcial | Se valida la forma de la respuesta del modelo y se enmascara la PII; no se limita el tamaño |
+| Validación de salidas | Cumple con límite | Se valida la forma de la respuesta del modelo, se enmascara la PII y se limita el tamaño a `MAX_ANSWER_CHARS` (1500 por omisión); no se valida el resto del contenido ni el tamaño del historial de entrada |
 
 ## Resultados
 
@@ -85,7 +85,9 @@ ofuscadas y una CURP pegada a otras letras no se detectan.
 
 **Prueba de humo automática.** El flujo `Smoke` de GitHub Actions corre `scripts/smoke.py` a mano y una vez al día, con la clave en un secreto del repositorio. Una corrida manual terminó en `success` con las seis comprobaciones en `[OK]` y la clave enmascarada en el registro ([`evidencias/github-actions-smoke-sesion7.txt`](evidencias/github-actions-smoke-sesion7.txt)).
 
-**Pruebas.** 307 unitarias (95,31 % de cobertura), 28 de contrato, 7 de punta a punta, pylint 10,00/10 y 115 pruebas de las herramientas de la fábrica.
+**Límite de tamaño de la respuesta.** `answer` nunca pasa de `MAX_ANSWER_CHARS` (1500 por omisión): se recorta con un `…` y siempre después de enmascarar la PII, porque un corte antes dejaría media CURP en la respuesta. El evento `answer_truncated` lleva solo números. En producción, con tráfico normal, no aparece ([`evidencias/render-log-sesion8-limite-respuesta.txt`](evidencias/render-log-sesion8-limite-respuesta.txt)).
+
+**Pruebas.** 345 unitarias (95,41 % de cobertura), 32 de contrato, 7 de punta a punta, pylint 10,00/10 y 115 pruebas de las herramientas de la fábrica.
 
 ## Cómo se construyó, por sesión
 
@@ -97,6 +99,7 @@ ofuscadas y una CURP pegada a otras letras no se detectan.
 6. Costo por petición en el log y documentación pública (`spec/06-cost-and-docs.md`), más la medición con el
    modelo real y la prueba de carga.
 7. Prueba de humo automática en GitHub Actions (`spec/07-smoke-ci.md`).
+8. Límite de tamaño de la respuesta (`spec/08-answer-size.md`).
 
 Todo bucle tiene tope (2 rechazos del plan, 2 correcciones, 2 vueltas de `qa-style`) y la bitácora completa está
 en [`output/report.md`](output/report.md), con los defectos que el modelo real destapó y cómo se diagnosticaron
@@ -124,7 +127,6 @@ Se entrega como borrador y se completa en este mismo PR:
 
 - **Video de demostración** de 5 minutos como máximo.
 - **Recorte del token de Cloudflare** a `AI Gateway: Run` y `Workers AI: Read`; hoy tiene además `Workers AI: Edit`.
-- **Validación del tamaño de la respuesta** del modelo.
 - **Captura del panel de AI Gateway** (se agrega a `evidencias/`).
 - **Defecto conocido de la fábrica:** la bitácora `output/activity.jsonl` puede dejar una línea dañada cuando dos agentes escriben a la vez en Windows. Se mitigó al leerla; la escritura sigue sin ser atómica.
 

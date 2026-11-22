@@ -31,7 +31,7 @@ UUID). Un fallo interno da `500` con `{"detail": "internal error", "request_id"}
 
 Una línea JSON por evento en la salida estándar, con `ts` (UTC), `service`,
 `event` y `request_id`. Eventos: `request`, `agent_run`, `audit`, `error`,
-`invalid_model_output` e `invalid_tool_call`. Nunca incluye el texto de la pregunta ni de la respuesta.
+`invalid_model_output`, `invalid_tool_call` y `answer_truncated`. Nunca incluye el texto de la pregunta ni de la respuesta.
 
 `agent_run` se emite al terminar cada corrida del agente. Sus campos son
 `question_chars`, `history_messages`, `steps`, `tools`, `input_tokens`,
@@ -39,6 +39,11 @@ Una línea JSON por evento en la salida estándar, con `ts` (UTC), `service`,
 `cost_usd` es un número (USD) y es el mismo que devuelve `/ask`; sirve para
 sumar el gasto desde los logs de Render. Con un modelo sin precio en el archivo
 de precios hay error y el evento `agent_run` no se emite.
+
+`answer_truncated` se emite cuando la respuesta pasa de `MAX_ANSWER_CHARS`: se
+recorta (después del enmascarado) a los primeros `límite - 1` caracteres más un
+`…`, y la petición sigue en `200`. Lleva solo `original_chars` y `limit_chars`,
+nunca el texto. Un límite muy bajo (por ejemplo 1) recorta casi todo.
 
 `invalid_model_output` se emite cuando el agente rechaza una salida del modelo.
 Lleva solo `reason` (`not_json`, `not_object` o `bad_shape`), `raw_type` y
@@ -93,6 +98,7 @@ exceeded"}` con `Retry-After`; `502` es `{"detail": "model unavailable",
 | `MODEL_PROVIDER` | `fake` | Proveedor del modelo |
 | `AGENT_MAX_STEPS` | `3` | Tope de vueltas del agente |
 | `MAX_QUESTION_CHARS` | `2000` | Largo máximo de la pregunta |
+| `MAX_ANSWER_CHARS` | `1500` | Largo máximo de `answer`; si se pasa, se recorta y termina en `…`. Valores muy bajos recortan casi todo |
 | `EMPLOYEES_PATH` | `data/employees.json` | Archivo de empleados |
 | `SERVICE_NAME` | `hr-assistant` | Campo `service` del log |
 | `SLO_P95_MS` | `2000` | Meta de latencia p95 en milisegundos |

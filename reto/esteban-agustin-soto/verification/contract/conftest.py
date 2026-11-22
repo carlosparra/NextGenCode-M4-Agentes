@@ -28,6 +28,14 @@ def api_logged(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def api_short_answers(tmp_path_factory):
+    """El producto con un límite de 10 caracteres por respuesta y su salida guardada."""
+    log_path = tmp_path_factory.mktemp("short-answers-log") / "product.log"
+    with running_product(8775, log_path=log_path, MAX_ANSWER_CHARS="10") as client:
+        yield client, log_path
+
+
+@pytest.fixture(scope="session")
 def api_limited():
     """El producto con un límite de dos peticiones por minuto."""
     with running_product(8770, RATE_LIMIT_PER_MINUTE="2") as client:

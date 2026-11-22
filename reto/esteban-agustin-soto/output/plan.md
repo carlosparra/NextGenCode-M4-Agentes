@@ -307,3 +307,109 @@ Sin dependencias nuevas: solo `pytest`, `httpx` (ya en el producto), `importlib`
 ### Nota sobre la entrega
 
 El archivo irá en `product/.github/workflows/smoke.yml`. `product/` es la raíz del repositorio `hr-assistant` que publica `scripts/publish.py`; GitHub solo ejecuta flujos de `.github/workflows/` en la raíz del repositorio. En el fork de la clase (donde `product/` es una subcarpeta) el archivo queda inerte: no corre, no necesita el secreto y no falla. Solo cuenta en `hr-assistant`, donde la persona debe crear el secreto y la variable tras la aprobación y lanzarlo a mano con su permiso. Antes de esa creación, una corrida daría `2` en rojo; es lo esperado.
+
+## Sesion 8: limite de tamano de la respuesta
+
+Parte de las sesiones 1 a 7, que siguen igual. Hoy `answer` solo está acotada por tokens (`MODEL_MAX_TOKENS`), que depende del gateway. Se agrega un tope en caracteres, en el servidor, sobre el texto que sale de `POST /ask`. La forma de la respuesta (diez campos), `/metrics`, el costo, los tokens, el enmascarado de PII, `MAX_QUESTION_CHARS` y el bucle del agente no cambian. Decisión en ADR 0016.
+
+### 1. Donde vive el recorte
+
+- Módulo nuevo `app/truncate.py` (nombre sugerido), funciones puras: sin red, sin estado, sin logger, sin importar nada de `app/`.
+- Función `limit_text(text, limit)`: recibe el texto y el límite (entero mayor que cero) y devuelve una tupla `(texto, original_chars)`. `original_chars` es el largo del texto recibido, siempre (con o sin recorte); quien llama decide si hubo recorte comparando con el límite. Con `len(text) <= limit` devuelve el mismo texto sin tocarlo. Con más, devuelve los primeros `limit - 1` caracteres más un `…` (U+2026, un solo carácter), de modo que el resultado mide exactamente `limit`.
+- Bordes: texto vacío sale vacío y `original_chars` es 0; límite 1 con texto de más de un carácter devuelve solo `…`, y con texto de un carácter lo deja igual; justo en el límite no cambia; un carácter más recorta. Un límite menor que 1 lanza `ValueError` (defensa; la configuración ya lo impide). Se cuentan caracteres de Python (puntos de código), igual que `MAX_QUESTION_CHARS`; `ñ` y letras con tilde son un carácter y no se parten. Límite aceptado: un acento en forma descompuesta (letra y marca separadas) podría quedar sin su marca en el corte.
+- Uso en `main.py`: una función auxiliar privada `_limit_answer(logger, limit, answer)`, junto a `_mask_answer`, que llama a `limit_text`, emite `answer_truncated` si `original_chars > limit` y devuelve el texto. En `ask`, tras `answer = result.answer` y tras el bloque `if settings.pii_masking: answer = _mask_answer(...)`, una línea más: `answer = _limit_answer(logger, settings.max_answer_chars, answer)`. El recorte queda fuera del `if`: se aplica también con `PII_MASKING=false` (el límite de tamaño no es PII).
+- Por qué después del enmascarado: la CURP mide 18 caracteres y se detecta solo completa. Si se recortara antes, un corte en medio dejaría 10 o 12 caracteres que ya no coinciden con el patrón, y parte del dato saldría en la respuesta. Al enmascarar primero, la CURP ya es `[CURP]` (6 caracteres) y un corte solo podría dejar `[CUR…`, que no revela nada. Además, el conteo de `pii_masked` se hace sobre el texto completo, no sobre el recortado. Efecto secundario aceptado: el correo y la CURP enmascarados acortan el texto, así que se mide el largo después del enmascarado (el que de verdad sale).
+- Por qué no se reintenta dentro del bucle del agente: el tamaño se conoce al final, cuando el agente ya terminó.
+
+| Opción | Costo | Determinismo | Veredicto |
+| --- | --- | --- | --- |
+| Recortar | Cero llamadas extra | Siempre sale exactamente el límite o menos | Recomendada |
+| Reintentar pidiendo una respuesta más corta | Otra llamada al modelo (dinero, latencia, más tokens en `/metrics`), pedirle brevedad no garantiza el tamaño y hay que poner otro tope de reintentos | No garantizado: el tope puede romperse igual | Descartada; además la spec lo prohíbe |
+| Reemplazar por el mensaje de fallo | Cero llamadas | Determinista, pero se pierde una respuesta válida y el mensaje de fallo dice que algo falló cuando no fue así | Descartada; la spec pide `200` normal |
+
+Recortar es la única opción que no gasta, no depende del modelo y deja al usuario con lo que sí pudo leer. Mensaje de fallo del agente (`No pude completar...`) pasa por el mismo recorte: solo se tocaría si el límite fuese absurdamente pequeño; se acepta.
+
+### 2. Configuración
+
+- `config.py`: constante `DEFAULT_MAX_ANSWER_CHARS = 1500`; campo `max_answer_chars: int = DEFAULT_MAX_ANSWER_CHARS` en `Settings` (con valor por omisión, para no romper las pruebas que construyen `Settings` a mano; va después de `pii_masking`); entrada en `load_settings` con `_positive_int(env, "MAX_ANSWER_CHARS", DEFAULT_MAX_ANSWER_CHARS)`, el mismo helper que `MAX_QUESTION_CHARS` y `MODEL_MAX_TOKENS`, así que `0`, negativo o no numérico lanzan `ValueError` cuyo mensaje nombra `MAX_ANSWER_CHARS` y el producto no arranca. Se agrega el `:param max_answer_chars:` a la docstring de `Settings`. Una cadena vacía (`MAX_ANSWER_CHARS=`) falla igual que en las otras variables (no es un entero); se documenta que se borra la línea para usar el valor por omisión.
+- Compliance: recomendación, no entra. Las reglas de `compliance.py` son lo que no puede estar apagado o flojo en producción (claves, PII, trazas, proveedor). Un límite de tamaño es un parámetro de ajuste como `MAX_QUESTION_CHARS`, no una protección que se pueda quitar por error; no hay un valor «inseguro» definido por la spec y `_positive_int` ya impide el cero. Por eso no se agrega regla en `check_production` ni fila de regla de producción en la lista. Sí se agrega en `doc/compliance-checklist.md` una fila informativa (límite de tamaño de `answer` aplicado en servidor, dónde está y su prueba), como pide la spec; no es una regla de arranque y la fila lo dice.
+- `README.md` (tabla de variables, junto a `MAX_QUESTION_CHARS`) y `.env.example` (`MAX_ANSWER_CHARS=1500`, junto a `MAX_QUESTION_CHARS`, con un comentario de una línea).
+
+### 3. Evento `answer_truncated`
+
+- Se emite en `_limit_answer` de `main.py`, con el logger inyectado (el mismo patrón que `_audit_masked`): `logger.log("answer_truncated", original_chars=n, limit_chars=m)`. Solo cuando `original_chars > limit`; sin recorte no se emite nada.
+- Solo dos campos numéricos enteros. No lleva el texto, ni un fragmento, ni el largo del recortado (es igual a `limit_chars`). El logger agrega solos `ts`, `service`, `request_id` y `client`.
+- Por qué no lleva texto: la respuesta puede traer datos de empleados, y el enmascarado del log solo cubre CURP y correo, no nombres ni salarios. Los dos números bastan para ver cuánto se pasó y si hay que subir el límite. Además se evita escribir en el log un texto de hasta miles de caracteres.
+- No es un `audit` ni lleva `action`: es un evento propio, como pide la spec, para poder buscarlo por nombre en los logs de Render.
+- Orden de eventos en una petición recortada: `pii_masked` (si hubo PII) antes de `answer_truncated`, y ambos antes de `request`.
+
+### 4. `api_docs.py`
+
+- Solo cambia la descripción del campo `answer` de `AskResponse`: «Respuesta del asistente. Con la configuración por omisión mide como máximo 1500 caracteres; si se pasa, se recorta y termina en `…`. El límite es `MAX_ANSWER_CHARS`.» Y la línea `:param answer:` de la docstring.
+- Sin `max_length`, `maxLength` ni otra restricción en el esquema. Razón: el límite es configurable, y un número escrito en el esquema mentiría cuando alguien cambie la variable. Además `AskResponse` no se usa para validar (ADR 0014: va solo en `responses`), pero un `maxLength` en el esquema podría confundir a los clientes generados. El texto lleva «por omisión» para ser verdadero con cualquier configuración.
+- El esquema sigue teniendo las mismas diez propiedades; la prueba de claves de la sesión 6 sigue valiendo. La descripción es una constante de módulo en `api_docs.py` con el 1500 (puede importar `DEFAULT_MAX_ANSWER_CHARS`, pero `api_docs.py` hoy no importa `config`; se recomienda escribir el número en el texto y que una prueba lo compare con la constante por omisión de `config`).
+
+### 5. Archivos de product/ por agente
+
+- `qa-unit` (solo `product/tests/`, rojas primero): `tests/test_truncate.py` (nuevo, función pura), `tests/test_answer_limit.py` (nuevo, `/ask`, evento y esquema) y, si se prefiere Gherkin, `tests/features/answer_limit.feature` con su archivo de pasos. La configuración va en `tests/test_config.py`: si prefiere no editar ese archivo, un archivo nuevo (`tests/test_answer_limit_config.py`). No edita pruebas existentes.
+- `security` (dueño de `app/`, `README.md`, `.env.example` y `doc/compliance-checklist.md`), en una sola pasada:
+  - `app/truncate.py` (nuevo), `app/config.py` (constante, campo, lectura y docstring), `app/main.py` (importar `limit_text`, `_limit_answer`, una línea en `ask`), `app/api_docs.py` (descripción de `answer`).
+  - `README.md`: fila `MAX_ANSWER_CHARS` en la tabla de variables y una frase en la sección de `/ask` o de rutas (el recorte, el `…` y el evento `answer_truncated` en la parte de log).
+  - `.env.example`: `MAX_ANSWER_CHARS=1500`.
+  - `doc/compliance-checklist.md`: la fila informativa del punto 2, con `app/truncate.py`, `app/main.py` y sus pruebas.
+  - Nota de reparto: la fábrica asigna `app/` a `developer`, pero la petición de esta sesión pide que `security` haga código y documentación; el supervisor decide si se respeta eso o si el código lo hace `developer` y `security` solo los documentos. Cualquiera de las dos sirve; lo que importa es que los mismos archivos no los toquen dos agentes a la vez.
+  - Sin cambios: `app/agent.py`, `app/pii.py`, `app/observability.py`, `app/router.py`, `app/security.py`, `app/compliance.py`, `static/`, `requirements.txt`, `Dockerfile`, `render.yaml`, CI y `scripts/smoke.py`.
+- `architect` (este plan): `product/doc/adr/0016-answer-size-limit.md` y `product/doc/architecture.md` (solo las líneas necesarias, con `Edit`: la frase de la sesión 8 al inicio, un nodo y dos flechas en el diagrama principal entre `pii.py` y la respuesta, y un renglón de `truncate.py` en «Módulos»).
+- Sin cambios: `observability`, `costs`, `qa-e2e` (la página muestra lo que devuelve la API), `deploy`.
+- Fuera de `product/`, lo escribe el supervisor: `verification/contract/test_contract_08.py` (o el número que corresponda), que arranca el producto con `MAX_ANSWER_CHARS` pequeño y una respuesta larga, comprueba que `answer` mide el límite y termina en `…`, y que el log capturado trae `answer_truncated` con `original_chars` y `limit_chars` y sin el texto; y la propuesta. Si `verification/server.py` no deja pasar variables al servidor de prueba, lo ajusta el supervisor.
+
+### 6. Pruebas de qa-unit (rojas primero)
+
+`tests/test_truncate.py`, función pura:
+- Texto más corto que el límite: igual, y `original_chars` es su largo.
+- Justo en el límite (largo igual): igual.
+- Un carácter más que el límite: mide exactamente el límite, termina en `…` y los primeros `limit - 1` caracteres son los del original.
+- Texto muy largo (por ejemplo 100 000 caracteres) con límite 1500: mide 1500; `original_chars` es 100 000.
+- Texto vacío: vacío y `original_chars` 0.
+- Límite 1 con texto de 2 o más caracteres: exactamente `…`; con texto de 1 carácter: igual.
+- Con `ñ`, tildes y un `…` ya presente en el texto: no se rompe ninguno ni se cuenta mal; el resultado termina en un solo `…`.
+- Límite 0 y negativo lanzan `ValueError`.
+- No muta ni devuelve algo distinto de `str` (tipo de retorno).
+- Idempotencia: recortar un texto ya recortado al mismo límite no cambia nada.
+
+`/ask` (modelo simulado que contesta un texto largo; `Settings` con `max_answer_chars` pequeño o por omisión):
+- Respuesta de 5000 caracteres con el límite por omisión: `200`, `answer` mide 1500 y termina en `…`; los diez campos están, y `input_tokens`, `output_tokens`, `cost_usd`, `steps`, `tools_used`, `model`, `route` y `cached_calls` son iguales a los de una corrida con el límite alto.
+- Respuesta justo de 1500: sale intacta y no hay evento; de 1501: se recorta.
+- CURP y correo que cruzan el punto de corte (por ejemplo, la CURP empieza 5 caracteres antes del corte): en `answer` no aparece ningún fragmento de ellos (ni los primeros 5 caracteres de la CURP ni el usuario del correo), y sí `[CURP]` o `[EMAIL]` o un marcador cortado.
+- Con `PII_MASKING=false` (desarrollo) el recorte se aplica igual.
+- Evento `answer_truncated`: exactamente los campos `original_chars` y `limit_chars` (más los comunes del logger), valores enteros y correctos; el log completo capturado no contiene el texto recortado ni un fragmento de 20 caracteres de él; con respuesta corta no hay ningún evento `answer_truncated`.
+- `original_chars` es el largo después del enmascarado, no el del texto original del modelo (prueba con un correo largo que se vuelve `[EMAIL]`).
+- Con el límite en 1: `answer` es `…`.
+- Una respuesta recortada no emite un segundo `agent_run` ni cambia la cuenta de llamadas al modelo (no hay reintentos): el modelo simulado cuenta sus llamadas.
+- `502` y `401`/`429` no cambian, y el cuerpo de error no pasa por el recorte.
+
+Configuración:
+- Por omisión `max_answer_chars` vale 1500; `MAX_ANSWER_CHARS=200` se respeta; `0`, `-5`, `abc`, `1.5` y cadena vacía lanzan `ValueError` con `MAX_ANSWER_CHARS` en el mensaje.
+- `create_app` con `ENVIRONMENT=production` y todo correcto sigue arrancando con la variable ausente (no es regla de compliance); `check_production` no menciona `MAX_ANSWER_CHARS`.
+- `repr(Settings)` sigue sin claves.
+
+Esquema OpenAPI:
+- `AskResponse` conserva exactamente sus diez propiedades; la descripción de `answer` menciona `1500` y `…`; `answer` no trae `maxLength`; el esquema serializado sigue sin claves, CURP ni correos.
+
+Cobertura mínima 80 %, sin cambio.
+
+### Riesgos
+
+- Orden mal puesto (recortar antes de enmascarar): fuga de media CURP. Se fija con la prueba de CURP y correo en el punto de corte y con el ADR.
+- Recortar solo cuando hay enmascarado: el recorte va fuera del `if settings.pii_masking`; prueba con `PII_MASKING=false`.
+- Texto en el log: `answer_truncated` solo con números; la prueba busca el texto en todo el log capturado.
+- Que el recorte rompa pruebas existentes: las respuestas normales miden mucho menos que 1500, pero se revisan las fixtures con respuestas largas antes de correr; las que cambien se reportan, no se ajustan en silencio. La prueba de humo y `evaluate` no cambian.
+- Un límite muy pequeño en producción deja respuestas inútiles: no hay mínimo en la spec; se documenta en el README que valores bajos recortan casi todo. Se puede ver en los logs con el evento.
+- Costo y tokens: se pagan los tokens completos aunque se recorte (el modelo ya respondió). `MODEL_MAX_TOKENS` sigue siendo la palanca de costo; este límite es de forma, no de gasto.
+- Mensaje con `[CUR…` al final: se acepta; no revela datos.
+- `pylint` con `main.py` grande: el archivo tiene alrededor de 400 líneas, lejos del límite de `too-many-lines` (1000). Lo que sí puede saltar es `too-many-locals` o `too-many-statements` en `ask`: hoy tiene unos 10 locales y la sesión suma ninguno nuevo (la línea reutiliza `answer`), pero cualquier variable extra acerca el tope de 15. Por eso la lógica del evento va en `_limit_answer` y no dentro de `ask`, y no se agregan locales. `create_app` ya lleva `# pylint: disable=too-many-arguments,too-many-locals`; si el developer agregara locales ahí, el desactivador ya cubre. Líneas de 88 columnas máximo. Si `main.py` creciera más en el futuro, mover los ayudantes de enmascarado y recorte a un módulo propio.
+- `…` en el código fuente: el archivo debe guardarse en UTF-8 (ya lo está); la respuesta JSON de FastAPI lo sirve bien. La prueba del contrato lo compara como carácter, no como secuencia escapada.
+
+### 7. Lo que no se cubre
+
+No se limita el tamaño de los mensajes del historial de entrada (`history[].content`), ni su cantidad total más allá de `HISTORY_WINDOW`, que decide cuántos se mandan al modelo, no cuánto miden. Una persona puede mandar un historial con mensajes muy largos y el modelo los recibirá enteros. Es entrada, no respuesta, y la spec lo deja fuera; queda como mejora futura (un límite por mensaje o un total, con su propia variable y su propio `422`). Tampoco se valida el contenido de `answer` más allá de su tamaño y del enmascarado de PII, y el límite no alcanza al cuerpo de errores ni a `/metrics`.

@@ -1,6 +1,6 @@
 # Arquitectura del HR Assistant
 
-API FastAPI sin estado con un solo agente, un modelo detrás de una interfaz y un directorio de solo lectura. Desde la sesión 2 cada petición lleva un `request_id`, deja un log JSON y alimenta métricas. Desde la sesión 3 un enrutador elige el modelo por pregunta, el modelo real se usa por AI Gateway y cada respuesta informa su costo. Desde la sesión 4 el acceso exige una clave por cliente, hay un límite de peticiones, la configuración de producción se verifica al arrancar y el producto se publica en Render solo si el pipeline pasa. Desde la sesión 5 la CURP y el correo se enmascaran en la pregunta, el historial, la respuesta y el log. Desde la sesión 6 el evento `agent_run` trae `cost_usd` (el mismo número que devuelve `/ask`) y la documentación OpenAPI es pública. Desde la sesión 7 un flujo de GitHub Actions corre cada día `scripts/smoke.py` (seis comprobaciones) con la clave en un secreto de GitHub. Decisiones en `adr/`.
+API FastAPI sin estado con un solo agente, un modelo detrás de una interfaz y un directorio de solo lectura. Desde la sesión 2 cada petición lleva un `request_id`, deja un log JSON y alimenta métricas. Desde la sesión 3 un enrutador elige el modelo por pregunta, el modelo real se usa por AI Gateway y cada respuesta informa su costo. Desde la sesión 4 el acceso exige una clave por cliente, hay un límite de peticiones, la configuración de producción se verifica al arrancar y el producto se publica en Render solo si el pipeline pasa. Desde la sesión 5 la CURP y el correo se enmascaran en la pregunta, el historial, la respuesta y el log. Desde la sesión 6 el evento `agent_run` trae `cost_usd` (el mismo número que devuelve `/ask`) y la documentación OpenAPI es pública. Desde la sesión 7 un flujo de GitHub Actions corre cada día `scripts/smoke.py` (seis comprobaciones) con la clave en un secreto de GitHub. Desde la sesión 8 la respuesta nunca pasa de `MAX_ANSWER_CHARS` caracteres: se recorta después de enmascarar la PII. Decisiones en `adr/`.
 
 ```mermaid
 flowchart LR
@@ -31,6 +31,8 @@ flowchart LR
     M -->|pregunta, historial y answer| PI[pii.py enmascara CURP y correo]
     PI -->|texto enmascarado| A
     PI -->|audit pii_masked| O
+    PI -->|answer ya enmascarada| TR[truncate.py recorta a MAX_ANSWER_CHARS]
+    TR -->|answer recortada, evento answer_truncated con numeros| M
     MW -->|request, error con client| O[observability.py JsonLogger]
     O -->|valores de cada campo, antes de serializar| PI
     A -->|audit, agent_run con client| O
@@ -64,6 +66,7 @@ flowchart LR
 - `security.py`: lectura de `API_KEYS`, autenticación con `compare_digest` y límite por cliente con reloj inyectado (ADR 0010 y 0011).
 - `compliance.py`: reglas de `ENVIRONMENT=production` que impiden arrancar, incluida `PII_MASKING=true` (ADR 0012 y 0013).
 - `pii.py`: enmascara CURP y correo como `[CURP]` y `[EMAIL]` en la pregunta, el historial, la respuesta y los valores de cada evento del log (antes de serializar a JSON); funciones puras (ADR 0013).
+- `truncate.py`: recorta `answer` a `MAX_ANSWER_CHARS` (los primeros `MAX_ANSWER_CHARS - 1` caracteres y `…`) después del enmascarado de PII; funciones puras; cada recorte emite `answer_truncated` solo con `original_chars` y `limit_chars` (ADR 0016).
 - `directory.py`: lectura de empleados.
 - `router.py`: elige `MODEL_SMALL` o `MODEL_LARGE` y el motivo (ADR 0007).
 - `pricing.py`: costo por llamada según la tabla de precios (ADR 0009).

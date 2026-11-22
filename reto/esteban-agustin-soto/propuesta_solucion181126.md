@@ -13,7 +13,7 @@ El HR Assistant **ya está desplegado en Render** (servicio web con contenedor D
 Cloudflare Workers AI a través de AI Gateway, trazas en LangSmith) y pasa una prueba de humo
 contra la URL pública. Por eso esta propuesta no es una migración: documenta la solución que ya
 existe, señala lo que el reto exige y todavía no está cubierto, y propone cómo cerrarlo y cómo
-demostrarlo. Ya se cerraron cinco huecos, con verificación en producción o medición real:
+demostrarlo. Ya se cerraron seis huecos, con verificación en producción o medición real:
 
 - **Detección de datos sensibles (PII)**, sesión 5: la CURP y el correo electrónico (México) se
   enmascaran en todas las salidas (sección 4.5 y `spec/05-pii.md`).
@@ -25,9 +25,11 @@ demostrarlo. Ya se cerraron cinco huecos, con verificación en producción o med
   modelo real (sección 4.1).
 - **Prueba de humo automática**, sesión 7: el flujo `smoke.yml` la corre en GitHub Actions, a
   mano y una vez al día, con seis comprobaciones (sección 5).
+- **Límite de tamaño de la respuesta**, sesión 8: `answer` nunca pasa de `MAX_ANSWER_CHARS` (1500 por
+  omisión); se recorta después de enmascarar la PII (sección 4.4).
 
-El hueco que queda es la **entrega**: recortar el token de Cloudflare, validar el tamaño
-de las salidas, grabar el video y preparar el Pull Request.
+El hueco que queda es la **entrega**: recortar el token de Cloudflare, grabar el video y
+preparar el Pull Request.
 
 Hay límites que dependen del **plan de Render** (varias instancias, escalado automático, retención
 de logs, envío de logs a un tercero). Cada vez que una capacidad depende del plan se marca como
@@ -49,7 +51,7 @@ de cobertura, 28 de contrato y 7 de punta a punta) y contra el servicio publicad
 | Logging estructurado y correlation IDs | Cumple | Log JSON con `request_id` y `client` (ADR 0004); visible en los logs de Render |
 | Métricas de latencia, errores y costos | Cumple con límite | `/metrics` con p50, p95, errores, tokens y costo; el evento `agent_run` también trae `cost_usd`, el mismo número que `/ask`. Es por proceso y en memoria (ADR 0005), correcto con una sola instancia |
 | Optimización de costos con baseline | Cumple | Medida con el modelo real: baja un 83,7 % sin perder calidad (4.3) |
-| Validación de entradas y salidas | Parcial | Entrada: longitud de la pregunta (422) y forma del historial. Salida: se valida la forma del JSON del modelo y se enmascaran CURP y correo; no se limita el tamaño ni se valida el resto del contenido |
+| Validación de entradas y salidas | Cumple con límite | Entrada: longitud de la pregunta (422) y forma del historial. Salida: se valida la forma del JSON del modelo, se enmascaran CURP y correo y se limita el tamaño a `MAX_ANSWER_CHARS`; no se valida el resto del contenido ni el tamaño de los mensajes del historial de entrada |
 | Secretos sin credenciales en el código | Cumple | Variables de entorno en Render (`sync: false`); reglas de compliance al arrancar |
 | Auditoría de acciones relevantes | Cumple | Evento `audit` en cada llamada de herramienta |
 | Detección de PII (CURP y correo, México) | Cumple | `app/pii.py` en entrada, respuesta y log; 0 coincidencias en los logs de Render y evento `pii_masked` (sesión 5, sección 4.5) |
@@ -232,7 +234,7 @@ incluyen cifras aquí para no inventarlas*). El costo variable es el del modelo.
 | Control | Estado y propuesta |
 | --- | --- |
 | Validación de entradas | Existe (longitud de la pregunta, forma del historial) |
-| Validación de salidas | El detector de PII ya filtra el campo `answer`. Pendiente: un modelo de respuesta con límites de tamaño |
+| Validación de salidas | El detector de PII filtra el campo `answer` y `app/truncate.py` lo limita a `MAX_ANSWER_CHARS` (1500 por omisión), siempre después del enmascarado: un corte antes dejaría media CURP en la respuesta. El evento `answer_truncated` lleva solo números (sesión 8, ADR 0016). Sin cubrir: el tamaño del historial de entrada |
 | Secretos | Variables de entorno de Render con `sync: false`; `.gitignore` y `.dockerignore` los excluyen; el arranque en producción se niega si las claves son débiles o el modelo es el simulado |
 | Autenticación | Clave por cliente en `X-API-Key`, comparada en tiempo constante; nunca se escribe en log, traza ni error |
 | Auditoría | Evento `audit` en cada llamada de herramienta, con el cliente y el `request_id` |
@@ -362,7 +364,7 @@ Pocos y pequeños. Siguen el flujo de la fábrica: pruebas en rojo primero, desp
 | `cost_usd` en el evento `agent_run` | Costo por petición agregable desde los logs | `qa-unit` y `developer` | Hecho, sesión 6 |
 | `/docs` público, esquema OpenAPI completo y README | Cumplir y controlar la documentación OpenAPI | `developer` y `security` | Hecho, sesión 6 |
 | Comprobación de `/openapi.json` en la prueba de humo | Comprobar la documentación pública en producción | el supervisor | Hecho, sesión 6 |
-| Modelo de respuesta con límites de tamaño | Validar el contenido de las salidas | `security` | Pendiente |
+| Límite de tamaño de la respuesta (`MAX_ANSWER_CHARS`, `app/truncate.py`) | Validar la salida: tamaño acotado en el servidor | `qa-unit` y `security` | Hecho, sesión 8 |
 | `smoke.yml` en `.github/workflows/` y `scripts/smoke.py` con seis comprobaciones | Prueba de humo automática | `qa-unit` y `deploy` | Hecho, sesión 7 |
 
 ## 7. Costos y trade-offs de la plataforma
@@ -393,9 +395,9 @@ Como el despliegue ya existe, el tiempo se va en cerrar huecos y reunir evidenci
 | Automatización | 3:00 a 3:20 | `smoke.yml` en GitHub Actions |
 | Cierre | 3:20 a 4:00 | README, diagramas, video de 5 minutos y Pull Request |
 
-Ya están hechos el bloque de PII, el de `cost_usd` y `/docs`, la medición con el modelo real
-y la prueba de carga. Quedan el recorte del token, la validación del tamaño de las salidas y el cierre. Si falta
-tiempo, lo primero que se deja fuera es la validación del tamaño de las salidas.
+Ya están hechos el bloque de PII, el de `cost_usd` y `/docs`, la medición con el modelo real,
+la prueba de carga, la prueba de humo automática y el límite de tamaño de la respuesta. Queda el
+recorte del token y el cierre (video y Pull Request).
 
 ## 9. Evidencia
 
@@ -419,6 +421,7 @@ tiempo, lo primero que se deja fuera es la validación del tamaño de las salida
   de la medición con el modelo real.
 - Prueba de humo automática en GitHub Actions (`smoke.yml`), con una corrida manual en `success`
   y seis comprobaciones en `[OK]`.
+- Límite de tamaño de la respuesta en producción. Verificado en producción con el servicio en el commit `9f7f13d`: el flujo `Smoke` terminó en `success` y en el log de Render hay peticiones `/ask` con 200 y 401, la PII enmascarada y cero eventos `answer_truncated`, como se espera con tráfico normal (las respuestas miden mucho menos que 1500 caracteres).
 - Prueba de carga por escalones: local (`output/load-local.md`) y Render con el modelo real
   (`output/load-render.md`).
 - Historial de la puesta en producción en `output/report.md`: tres defectos encontrados y

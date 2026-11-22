@@ -22,6 +22,7 @@ DEFAULT_PRICES_PATH = (
 DEFAULT_PROVIDER = "fake"
 DEFAULT_MAX_STEPS = 3
 DEFAULT_MAX_QUESTION_CHARS = 2000
+DEFAULT_MAX_ANSWER_CHARS = 1500
 DEFAULT_SERVICE_NAME = "hr-assistant"
 DEFAULT_SLO_P95_MS = 2000
 DEFAULT_EMPLOYEES_PATH = (
@@ -84,6 +85,9 @@ class Settings:  # pylint: disable=too-many-instance-attributes
     :param pii_masking: Enmascara CURP y correo en entradas, respuestas y logs
         (``PII_MASKING``); en producción no puede ser ``False``
     :type pii_masking: bool
+    :param max_answer_chars: Largo máximo de ``answer``; si se pasa, se recorta
+        y termina en ``…`` (``MAX_ANSWER_CHARS``)
+    :type max_answer_chars: int
     """
 
     model_provider: str
@@ -111,6 +115,7 @@ class Settings:  # pylint: disable=too-many-instance-attributes
     api_keys: dict = field(default_factory=dict, repr=False)
     rate_limit_per_minute: int = DEFAULT_RATE_LIMIT
     pii_masking: bool = True
+    max_answer_chars: int = DEFAULT_MAX_ANSWER_CHARS
 
 
 def _environment(env):
@@ -298,5 +303,8 @@ def load_settings(env: Mapping[str, str]) -> Settings:
             env, "RATE_LIMIT_PER_MINUTE", DEFAULT_RATE_LIMIT
         ),
         pii_masking=_boolean(env, "PII_MASKING", True),
+        max_answer_chars=_positive_int(
+            env, "MAX_ANSWER_CHARS", DEFAULT_MAX_ANSWER_CHARS
+        ),
         **_cost_settings(env, provider),
     )
