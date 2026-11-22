@@ -8,7 +8,8 @@ Render. Una persona dirigió, aprobó el plan y aprobó cada publicación; ningu
   `/metrics` piden clave de cliente).
 - **Código del producto:** carpeta [`product/`](product/) de esta entrega. El producto también vive en un
   repositorio privado de GitHub, desde el que Render despliega.
-- **Video de demostración (máximo 5 minutos):** pendiente de enlazar en esta descripción.
+- **Video de demostración (máximo 5 minutos):** subido por el autor a la página de la plataforma del curso para
+  cerrar el reto; no se enlaza aquí.
 
 Lo que todavía falta está en la sección «Qué falta», al final.
 
@@ -123,9 +124,8 @@ terminal (variables `SMOKE_API_KEY`, `CF_ACCOUNT_ID` y `CF_API_TOKEN`); nunca va
 
 ## Qué falta
 
-Se entrega como borrador y se completa en este mismo PR:
+Queda pendiente, y se completa en este mismo PR:
 
-- **Video de demostración** de 5 minutos como máximo.
 - **Recorte del token de Cloudflare** a `AI Gateway: Run` y `Workers AI: Read`; hoy tiene además `Workers AI: Edit`.
 - **Captura del panel de AI Gateway** (se agrega a `evidencias/`).
 - **Defecto conocido de la fábrica:** la bitácora `output/activity.jsonl` puede dejar una línea dañada cuando dos agentes escriben a la vez en Windows. Se mitigó al leerla; la escritura sigue sin ser atómica.
