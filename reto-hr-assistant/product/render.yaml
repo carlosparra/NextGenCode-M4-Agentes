@@ -1,0 +1,33 @@
+# Blueprint de Render: un servicio web con el contenedor del Dockerfile.
+# El servicio se llama igual que el repositorio para no pisar otro servicio de la cuenta.
+services:
+  - type: web
+    name: hr-as
+    runtime: docker
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    # Publica solo cuando el pipeline de CI (style, unit, e2e, docker) pasa.
+    autoDeployTrigger: checksPass
+    envVars:
+      # Configuración no secreta: activa las reglas de compliance de producción.
+      - key: ENVIRONMENT
+        value: production
+      - key: MODEL_PROVIDER
+        value: gateway
+      - key: HIDE_INPUTS
+        value: "true"
+      - key: HIDE_OUTPUTS
+        value: "true"
+      # Redacción de PII: obligatoria con ENVIRONMENT=production o el producto no arranca.
+      - key: PII_REDACTION
+        value: "true"
+      # Secretos: se escriben en Render al crear el Blueprint, nunca en el repositorio.
+      # LANGSMITH_API_KEY es opcional y se agrega en Render > Environment si hace falta.
+      - key: API_KEYS
+        sync: false
+      - key: CF_ACCOUNT_ID
+        sync: false
+      - key: CF_API_TOKEN
+        sync: false

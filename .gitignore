@@ -16,3 +16,6 @@ __pycache__/
 .coverage
 htmlcov/
 .DS_Store
+
+# El reto versiona su producto (es el entregable)
+!reto-hr-assistant/product/
