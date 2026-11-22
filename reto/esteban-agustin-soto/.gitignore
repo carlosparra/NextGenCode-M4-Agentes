@@ -1,0 +1,17 @@
+# Esta carpeta conserva la estructura de la fabrica: product/ y output/ SI se entregan.
+# El .gitignore de la raiz del repositorio los excluye, asi que se vuelven a incluir aqui.
+!product/
+!output/
+
+# Secretos y basura de entorno: nunca se entregan
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+.DS_Store
+
+# Bitacora cruda de la fabrica (no es evidencia)
+output/activity.jsonl

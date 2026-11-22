@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HR Assistant</title>
+  <style>
+    body { font-family: sans-serif; max-width: 42rem; margin: 2rem auto; }
+    #conversation { border: 1px solid #ccc; min-height: 12rem; padding: 1rem; }
+    .turn { margin-bottom: 0.75rem; }
+    .user { font-weight: bold; }
+    .tools { color: #666; font-size: 0.85rem; }
+    .error { color: #b00020; }
+    input { width: 75%; padding: 0.4rem; }
+    button { padding: 0.4rem 1rem; }
+  </style>
+</head>
+<body>
+  <h1>HR Assistant</h1>
+  <div id="conversation" data-testid="answer" aria-live="polite"></div>
+  <p class="tools">ID de petición: <span data-testid="request-id"></span></p>
+  <p class="tools">Modelo: <span data-testid="model"></span></p>
+  <p class="tools">Costo (USD): <span data-testid="cost"></span></p>
+  <p>
+    <input type="password" data-testid="api-key" placeholder="Clave de acceso"
+           autocomplete="off">
+  </p>
+  <p>
+    <input type="text" data-testid="question" placeholder="Escribe tu pregunta">
+    <button type="button" data-testid="send">Enviar</button>
+  </p>
+  <script>
+    const history = [];
+    const box = document.querySelector('[data-testid="answer"]');
+    const input = document.querySelector('[data-testid="question"]');
+    const button = document.querySelector('[data-testid="send"]');
+    const requestIdSlot = document.querySelector('[data-testid="request-id"]');
+    const keyInput = document.querySelector('[data-testid="api-key"]');
+    const STORAGE_NAME = 'hr-assistant-api-key';
+
+    // La clave vive solo en sessionStorage: se borra al cerrar la pestaña.
+    keyInput.value = sessionStorage.getItem(STORAGE_NAME) || '';
+    keyInput.addEventListener('input', function () {
+      sessionStorage.setItem(STORAGE_NAME, keyInput.value);
+    });
+
+    const modelSlot = document.querySelector('[data-testid="model"]');
+    const costSlot = document.querySelector('[data-testid="cost"]');
+
+    function addLine(text, className) {
+      const line = document.createElement('div');
+      line.className = 'turn ' + className;
+      line.textContent = text;
+      box.appendChild(line);
+      return line;
+    }
+
+    async function send() {
+      const question = input.value.trim();
+      if (!question) {
+        addLine('Escribe una pregunta antes de enviar.', 'error');
+        return;
+      }
+      addLine(question, 'user');
+      input.value = '';
+      button.disabled = true;
+      try {
+        const response = await fetch('/ask', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': keyInput.value,
+          },
+          body: JSON.stringify({ question: question, history: history }),
+        });
+        requestIdSlot.textContent = response.headers.get('X-Request-ID') || '';
+        if (response.status === 401) {
+          addLine('Clave inválida', 'error');
+          return;
+        }
+        if (response.status === 429) {
+          const wait = response.headers.get('Retry-After') || '60';
+          addLine('Demasiadas preguntas; espera ' + wait + ' segundos', 'error');
+          return;
+        }
+        if (!response.ok) {
+          addLine('No se pudo obtener la respuesta (error ' +
+                  response.status + '). Intenta de nuevo.', 'error');
+          return;
+        }
+        const data = await response.json();
+        addLine(data.answer, 'assistant');
+        modelSlot.textContent = data.model == null ? '' : String(data.model);
+        costSlot.textContent = data.cost_usd == null ? '' : String(data.cost_usd);
+        const tools = data.tools_used.length ? data.tools_used.join(', ') : 'ninguna';
+        addLine('Herramientas usadas: ' + tools, 'tools');
+        history.push({ role: 'user', content: question });
+        history.push({ role: 'assistant', content: data.answer });
+      } catch (error) {
+        addLine('No se pudo conectar con el servicio.', 'error');
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    button.addEventListener('click', send);
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') { send(); }
+    });
+  </script>
+</body>
+</html>

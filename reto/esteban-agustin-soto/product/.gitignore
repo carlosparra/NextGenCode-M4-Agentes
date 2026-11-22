@@ -1,0 +1,13 @@
+# Secretos
+.env
+
+# Entorno virtual y cachés
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.pylint.d/
+
+# Cobertura
+.coverage
+htmlcov/
