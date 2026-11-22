@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HR Assistant</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto;
+           padding: 0 1rem; color: #222; }
+    h1 { font-size: 1.4rem; }
+    form { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    input { flex: 1; padding: 0.5rem; font-size: 1rem; }
+    button { padding: 0.5rem 1rem; font-size: 1rem; }
+    .turn { border-radius: 6px; padding: 0.6rem 0.8rem; margin: 0.4rem 0;
+            white-space: pre-wrap; }
+    .user { background: #e8f0fe; }
+    .assistant { background: #f1f3f4; }
+    .tools { font-size: 0.85rem; color: #555; margin-top: 0.3rem; }
+    .error { background: #fde8e8; color: #8a1c1c; }
+    .key { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>HR Assistant</h1>
+  <!-- La clave vive solo en sessionStorage: se borra al cerrar la pestaña. -->
+  <div class="key">
+    <label for="api-key">Clave de acceso</label>
+    <input data-testid="api-key" id="api-key" type="password" autocomplete="off"
+           placeholder="Tu clave de cliente">
+  </div>
+  <form id="ask-form">
+    <input data-testid="question" id="question" type="text" autocomplete="off"
+           placeholder="Pregunta por un empleado (EMP-0001) o un departamento">
+    <button data-testid="send" id="send" type="submit">Enviar</button>
+  </form>
+  <div data-testid="answer" id="answer" aria-live="polite"></div>
+  <!-- Molde del id de la petición que se muestra bajo cada respuesta. -->
+  <template id="request-id-template">
+    <div class="tools" data-testid="request-id"></div>
+  </template>
+  <script>
+    // El historial vive solo en la memoria del navegador; la API no guarda nada.
+    const history = [];
+    const form = document.getElementById("ask-form");
+    const input = document.getElementById("question");
+    const button = document.getElementById("send");
+    const conversation = document.getElementById("answer");
+    const idTemplate = document.getElementById("request-id-template");
+    const keyInput = document.getElementById("api-key");
+    // Nombre de la entrada en sessionStorage; la clave nunca va en esta página.
+    const KEY_STORAGE_NAME = "hr-assistant-api-key";
+    const MESSAGE_INVALID_KEY = "Clave inválida";
+    const MESSAGE_PII_HIDDEN =
+      "Tu pregunta tenía datos personales que se ocultaron: ";
+
+    // Recupera la clave de esta pestaña, si la persona ya la escribió.
+    keyInput.value = sessionStorage.getItem(KEY_STORAGE_NAME) || "";
+    keyInput.addEventListener("change", () => {
+      sessionStorage.setItem(KEY_STORAGE_NAME, keyInput.value.trim());
+    });
+
+    // Arma el mensaje de error según el código HTTP de la respuesta.
+    function errorMessage(response) {
+      if (response.status === 401) {
+        return MESSAGE_INVALID_KEY;
+      }
+      if (response.status === 429) {
+        const seconds = response.headers.get("Retry-After") || "unos";
+        return "Demasiadas preguntas; espera " + seconds + " segundos";
+      }
+      if (response.status === 422) {
+        return "La pregunta no es válida: no puede estar vacía ni ser demasiado larga.";
+      }
+      return "Ocurrió un error en el servidor. Intenta de nuevo más tarde.";
+    }
+
+    // Texto del turno de la persona: la pregunta, o el aviso con los tipos de
+    // datos personales que el servidor ocultó (nunca sus valores).
+    function userTurnText(question, redactedTypes) {
+      if (redactedTypes.length) {
+        return MESSAGE_PII_HIDDEN + redactedTypes.join(", ");
+      }
+      return question;
+    }
+
+    // Agrega un bloque de texto a la conversación usando solo textContent.
+    // requestId es el request_id de la respuesta, para pasarlo a soporte.
+    function addTurn(kind, text, tools, requestId) {
+      const block = document.createElement("div");
+      block.className = "turn " + kind;
+      const body = document.createElement("div");
+      body.textContent = text;
+      // Marca el texto de cada respuesta del asistente para las pruebas e2e.
+      if (kind === "assistant") {
+        body.setAttribute("data-testid", "assistant-answer");
+      }
+      block.appendChild(body);
+      if (tools !== undefined) {
+        const detail = document.createElement("div");
+        detail.className = "tools";
+        detail.textContent = "Herramientas usadas: " +
+          (tools.length ? tools.join(", ") : "ninguna");
+        block.appendChild(detail);
+      }
+      if (requestId) {
+        const idLine = idTemplate.content.firstElementChild.cloneNode(true);
+        idLine.textContent = "Id de la petición: " + requestId;
+        block.appendChild(idLine);
+      }
+      conversation.appendChild(block);
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const question = input.value.trim();
+      if (!question) {
+        addTurn("error", "Escribe una pregunta antes de enviar.");
+        return;
+      }
+      button.disabled = true;
+      const apiKey = keyInput.value.trim();
+      sessionStorage.setItem(KEY_STORAGE_NAME, apiKey);
+      const headers = { "Content-Type": "application/json" };
+      if (apiKey) {
+        headers["X-API-Key"] = apiKey;
+      }
+      try {
+        const response = await fetch("/ask", {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify({ question: question, history: history }),
+        });
+        if (!response.ok) {
+          addTurn("error", errorMessage(response), undefined,
+                  response.headers.get("X-Request-ID"));
+          return;
+        }
+        const data = await response.json();
+        // El turno de la persona se pinta solo tras el 200: si la pregunta traía
+        // datos personales, se muestra el aviso en lugar del texto original.
+        addTurn("user", userTurnText(question, data.pii_redacted || []));
+        addTurn("assistant", data.answer, data.tools_used || [], data.request_id);
+        history.push({ role: "user", content: question });
+        history.push({ role: "assistant", content: data.answer });
+        input.value = "";
+      } catch (error) {
+        addTurn("error", "No se pudo conectar con el servidor. Revisa tu conexión.");
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "EMP-0001",
+    "name": "Ana López",
+    "department": "Tecnología",
+    "role": "Analista de datos",
+    "start_date": "2019-03-04",
+    "status": "activo",
+    "vacation_days_total": 20,
+    "vacation_days_taken": 5,
+    "personal_email": "ana.lopez.personal@example.com",
+    "personal_phone": "+52 55 1234 5601"
+  },
+  {
+    "id": "EMP-0002",
+    "name": "Luis Pérez",
+    "department": "Ventas",
+    "role": "Ejecutivo de cuenta",
+    "start_date": "2021-07-19",
+    "status": "activo",
+    "vacation_days_total": 14,
+    "vacation_days_taken": 14,
+    "personal_email": "luis.perez.personal@example.com",
+    "personal_phone": "+52 55 1234 5602"
+  },
+  {
+    "id": "EMP-0003",
+    "name": "Marta Ruiz",
+    "department": "Tecnología",
+    "role": "Desarrolladora",
+    "start_date": "2016-11-02",
+    "status": "baja",
+    "vacation_days_total": 18,
+    "vacation_days_taken": 0,
+    "personal_email": "marta.ruiz.personal@example.com",
+    "personal_phone": "+52 55 1234 5603"
+  },
+  {
+    "id": "EMP-0004",
+    "name": "Jorge Díaz",
+    "department": "Tecnología",
+    "role": "Líder técnico",
+    "start_date": "2022-01-10",
+    "status": "activo",
+    "vacation_days_total": 16,
+    "vacation_days_taken": 4,
+    "personal_email": "jorge.diaz.personal@example.com",
+    "personal_phone": "+52 55 1234 5604"
+  },
+  {
+    "id": "EMP-0005",
+    "name": "Sofía Gómez",
+    "department": "Finanzas",
+    "role": "Contadora",
+    "start_date": "2020-05-25",
+    "status": "activo",
+    "vacation_days_total": 18,
+    "vacation_days_taken": 10,
+    "personal_email": "sofia.gomez.personal@example.com",
+    "personal_phone": "+52 55 1234 5605"
+  }
+]
