@@ -34,7 +34,7 @@ reto-hr-assistant/
 │   ├── app/               # FastAPI: agente, herramientas, PII, filtro de salida, seguridad, métricas
 │   ├── data/              # employees.json (ficticio) y model_prices.json
 │   ├── doc/               # architecture.md, ADR 0001-0015, compliance-checklist.md
-│   ├── tests/  e2e/       # Unitarias + Gherkin (126, 96.84 %) y Playwright
+│   ├── tests/  e2e/       # Unitarias + Gherkin (127, 96.84 %) y Playwright
 │   ├── Dockerfile  render.yaml  .github/workflows/ci.yml
 └── docs/                  # Entrega: ENTREGA.md, reporte, plan, pipeline y evidencia
 ```

@@ -19,7 +19,12 @@ SYSTEM_PROMPT = (
     "- get_vacation_balance(employee_id): días de vacaciones totales, tomados "
     "y disponibles.\n"
     "- department_summary(department): personas, activas, de baja y promedio "
-    "de días disponibles."
+    "de días disponibles.\n"
+    "Reglas: usa una sola herramienta salvo que falte información. Tras un "
+    '"Resultado de la herramienta", responde de inmediato con {"answer": ...} '
+    "si ya tienes los datos. Responde solo la última pregunta. [EMAIL], "
+    "[PHONE], [CURP], [RFC] y [CARD] son datos ocultos: no los busques con "
+    "herramientas."
 )
 
 

@@ -101,8 +101,9 @@ El diagrama detallado de componentes está en
 | Latencia, errores y costo por request | Cada respuesta trae `cost_usd`, tokens, modelo y ruta; `GET /metrics` da p50/p95, `error_rate`, tokens, costo acumulado, SLO y `pii_detections` | `/metrics` |
 | Privacidad de las trazas | `HIDE_INPUTS` y `HIDE_OUTPUTS` en `true`: LangSmith ve la estructura y los tiempos, no las preguntas | captura 04 («No inputs») |
 
-**Ejemplo de depuración real.** La traza de la prueba de humo mostró que el modelo de 8B llamó tres herramientas
-para una pregunta que necesitaba una. Sin la traza, el costo extra no habría sido visible (ver Limitaciones).
+**Ejemplo de depuración real.** Las trazas mostraron que el modelo real de 8B llamaba herramientas de más y
+llegaba al tope de pasos. Con los `request_id` de la página se encontró cada traza, se identificó la causa en el
+prompt y se corrigió con la fábrica en el mismo día (sección 7).
 
 ## 3. Optimización de costos
 
@@ -110,9 +111,14 @@ para una pregunta que necesitaba una. Sin la traza, el costo extra no habría si
 
 | Corrida | Calidad | Costo (USD) | Tokens de entrada |
 | --- | --- | --- | --- |
-| Línea base (`ROUTING=false`, historial completo) | 100 % | 0.001635 | 3658 |
-| Palancas (configuración de producción) | 100 % | 0.000225 | 2860 |
-| **Diferencia** | **igual** | **−86.2 %** | **−21.8 %** |
+| Línea base (`ROUTING=false`, historial completo) | 100 % | 0.001912 | 4603 |
+| Palancas (configuración de producción) | 100 % | 0.000267 | 3805 |
+| **Diferencia** | **igual** | **−86.0 %** | **−17.3 %** |
+
+Cifras después de la corrección del prompt (sección 7). Antes de ella eran 0.001635 → 0.000225 (−86.2 %): las
+cuatro reglas nuevas del prompt suben ~19 % el costo por pregunta, a cambio de que el modelo real deje de llegar
+al tope de pasos. Es un trade-off costo/calidad medido: unos tokens más por pregunta valen menos que respuestas
+fallidas que el usuario repite.
 
 La calidad la decide código: cada pregunta del conjunto de evaluación (11 casos, incluidos los tres del reto) tiene
 textos que deben aparecer o que nunca deben aparecer. La evaluación usa los modelos simulados con los precios
@@ -163,20 +169,17 @@ La tabla completa de reglas de compliance, con su ubicación y prueba, está en
 | `evidencia/06-pregunta-vacaciones.png` | Producción: «A Jorge Díaz le quedan 12 días», con una sola herramienta e id de la petición |
 | `evidencia/07-pii-redactada.png` | Producción: la pregunta con un correo se reemplaza por el aviso «se ocultaron: EMAIL» y el correo no aparece |
 | `evidencia/08-swagger-docs.png` | OpenAPI en `/docs`: `POST /ask` con clave, respuesta con `cost_usd` y `pii_redacted`, y 422 de validación |
+| `evidencia/09-correccion-prompt.png` | Producción tras corregir el prompt: vacaciones, resumen y pregunta con correo, cada una con una sola herramienta |
 | [`reporte-fabrica.md`](reporte-fabrica.md) | Bitácora completa de la corrida: ciclos, correcciones y compuertas |
 | [`pipeline-fabrica.md`](pipeline-fabrica.md) | Diagrama del pipeline que registró la fábrica |
 | [`plan-reto.md`](plan-reto.md) | El plan que aprobó la persona |
 
 ## 6. Limitaciones conocidas y mejoras futuras
 
-- **El modelo de 8B a veces llama herramientas de más.** En la traza de la prueba de humo, una pregunta sobre un
-  empleado llamó tres herramientas y llegó al tope de pasos. La respuesta fue correcta, pero costó más. Mejoras:
-  un prompt más estricto, detenerse en cuanto hay datos suficientes o elegir la herramienta por reglas.
-- **Arrastre de contexto del historial.** En producción, después de preguntar por vacaciones, la pregunta
-  «¿quién es EMP-0001?» (con un correo, que se ocultó bien) se respondió con el saldo de vacaciones de Ana López:
-  correcto, pero no era lo que se preguntó (`evidencia/07-pii-redactada.png`). El modelo de 8B sigue el tema de
-  los turnos anteriores. Mejoras: indicar en el prompt que responda solo la última pregunta, bajar
-  `HISTORY_WINDOW` o agregar al conjunto de evaluación un caso con historial que cambia de tema.
+- **Las pruebas usan el modelo simulado.** Las compuertas no detectaron que el modelo real de 8B llamaba
+  herramientas de más ni arrastraba el tema del historial; se descubrió en producción con trazas (sección 7, ya
+  corregido). Mejora: una evaluación periódica contra el modelo real con preguntas encadenadas, en un entorno de
+  staging, antes de publicar.
 - **Límite de peticiones y métricas por proceso.** Con varias instancias habría que llevarlos a Redis o a Prometheus.
 - **La detección de PII es por expresiones regulares.** Puede tener falsos positivos (un número de 10 dígitos que no
   es teléfono) y no detecta nombres propios ni direcciones. Una mejora es un clasificador como Presidio.
@@ -194,3 +197,4 @@ La tabla completa de reglas de compliance, con su ubicación y prueba, está en
 | «resumen» contiene «resume» y mandaba la pregunta al modelo grande | El enrutador compara palabras completas, con prueba unitaria |
 | La fábrica no veía `SMOKE_API_KEY` porque se definió después de abrir Claude Code | La persona corrió la prueba de humo en su terminal; la clave nunca pasó por el chat |
 | `get_employee` devolvía el registro completo, con los datos personales | Listas de campos permitidos por herramienta |
+| **En producción, con el modelo real, el agente llegaba al tope de pasos.** Tras recibir el resultado de una herramienta volvía a pedir otras (`department_summary` → `get_employee` → tope), seguía el tema de la pregunta anterior y, con `[EMAIL]` en la pregunta, probaba las cuatro herramientas. Se detectó con las trazas de LangSmith (`request_id` 36da9f90, e42baa20, f5196cb5 y 2beef4a4) | Causa: el prompt explicaba cómo pedir herramientas pero no cuándo dejar de pedirlas. Un intento de mitigación por configuración (`HISTORY_WINDOW=0`) **empeoró** el resultado, porque el historial le daba al modelo ejemplos de respuestas; se revirtió. La corrección pasó por la fábrica: qa-unit escribió la prueba en rojo, developer agregó cuatro reglas a `SYSTEM_PROMPT` (una herramienta, responder tras el resultado, solo la última pregunta, marcadores de PII son datos ocultos), pasaron las 5 compuertas, architect lo registró en el ADR 0003 y, con aprobación, se publicó `52d5703`. Además `AGENT_MAX_STEPS=4` en Render como margen. Verificado en producción: las tres preguntas se responden con una sola herramienta (`evidencia/09-correccion-prompt.png`) |
