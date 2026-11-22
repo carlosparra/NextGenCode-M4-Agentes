@@ -170,6 +170,8 @@ La tabla completa de reglas de compliance, con su ubicación y prueba, está en
 | `evidencia/07-pii-redactada.png` | Producción: la pregunta con un correo se reemplaza por el aviso «se ocultaron: EMAIL» y el correo no aparece |
 | `evidencia/08-swagger-docs.png` | OpenAPI en `/docs`: `POST /ask` con clave, respuesta con `cost_usd` y `pii_redacted`, y 422 de validación |
 | `evidencia/09-correccion-prompt.png` | Producción tras corregir el prompt: vacaciones, resumen y pregunta con correo, cada una con una sola herramienta |
+| `evidencia/10-traza-antes-correccion.png` | LangSmith, **antes** (commit `ad673a8`, `request_id` f8cd6a5e): la pregunta con correo prueba las cuatro herramientas, 1.40 s y tope de pasos |
+| `evidencia/11-traza-despues-correccion.png` | LangSmith, **después** (commit `52d5703`, `request_id` 793b5a47): la misma pregunta con una sola herramienta, 0.82 s |
 | [`reporte-fabrica.md`](reporte-fabrica.md) | Bitácora completa de la corrida: ciclos, correcciones y compuertas |
 | [`pipeline-fabrica.md`](pipeline-fabrica.md) | Diagrama del pipeline que registró la fábrica |
 | [`plan-reto.md`](plan-reto.md) | El plan que aprobó la persona |
