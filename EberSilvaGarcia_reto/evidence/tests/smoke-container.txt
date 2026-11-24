@@ -1,0 +1,5 @@
+  [OK] GET /health -> 200
+  [OK] POST /ask sin clave -> 401 -> 401
+  [OK] POST /ask con clave -> 200 ['vacation_balance'] @cf/meta/llama-3.1-8b-instruct-fast $0.000157
+  [OK] MCP tools/call department_summary -> 200
+  [OK] GET /metrics -> 200

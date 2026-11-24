@@ -1,0 +1,18 @@
+{
+  "servers": {
+    "hr-assistant": {
+      "type": "stdio",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": ["-m", "app.mcp_server", "--env-file", "${workspaceFolder}/.env"],
+      "cwd": "${workspaceFolder}"
+    },
+    "hr-assistant-render": {
+      "type": "http",
+      "url": "https://hr-assistant-ebersilva.onrender.com/mcp",
+      "headers": {"X-API-Key": "${input:hr-api-key}"}
+    }
+  },
+  "inputs": [
+    {"id": "hr-api-key", "type": "promptString", "description": "Clave del HR Assistant", "password": true}
+  ]
+}

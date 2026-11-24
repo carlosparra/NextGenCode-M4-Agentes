@@ -1,0 +1,8 @@
+requests     1000
+concurrency  50
+seconds      2.95
+rps          338.7
+p50_ms       123.11
+p95_ms       301.01
+p99_ms       357.5
+codes        {200: 1000}

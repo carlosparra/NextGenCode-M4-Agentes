@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HR Assistant</title>
+<style nonce="{{nonce}}">
+  :root { --bg: #f6f7f9; --card: #fff; --ink: #1d2433; --muted: #5d6779; --line: #dfe3ea;
+          --accent: #1f6feb; --bad: #b42318; --ok: #067647; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1419; --card: #171d24; --ink: #e6e9ee; --muted: #9aa4b2;
+            --line: #2a323d; --accent: #4c8dff; --bad: #f97066; --ok: #47cd89; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 system-ui, sans-serif; background: var(--bg);
+         color: var(--ink); }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p.sub { color: var(--muted); margin: 0 0 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+          padding: 16px; margin-bottom: 16px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  input, textarea { width: 100%; padding: 10px; border: 1px solid var(--line);
+                    border-radius: 8px; background: var(--bg); color: var(--ink);
+                    font: inherit; }
+  textarea { min-height: 70px; resize: vertical; }
+  .row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  button { padding: 10px 16px; border: 0; border-radius: 8px; background: var(--accent);
+           color: #fff; font: inherit; cursor: pointer; }
+  button.ghost { background: transparent; color: var(--accent);
+                 border: 1px solid var(--line); }
+  .msg { border-top: 1px solid var(--line); padding: 12px 0; }
+  .msg:first-child { border-top: 0; }
+  .who { font-size: 12px; color: var(--muted); text-transform: uppercase; }
+  .meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .error { color: var(--bad); }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .chip { font-size: 12px; border: 1px solid var(--line); border-radius: 999px;
+          padding: 2px 10px; cursor: pointer; background: var(--bg); color: var(--ink); }
+  details { margin-top: 6px; font-size: 13px; color: var(--muted); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>HR Assistant</h1>
+  <p class="sub">Asistente de Recursos Humanos con agentes LangGraph. Pregunta por un
+    empleado, un área, sus vacaciones o un resumen. <a href="/dashboard">Tablero</a> ·
+    <a href="/docs">API</a></p>
+
+  <div class="card">
+    <label for="api-key">Clave de acceso</label>
+    <input id="api-key" data-testid="api-key" type="password" autocomplete="off"
+           placeholder="Tu clave (se guarda solo en esta pestaña)">
+  </div>
+
+  <div class="card">
+    <label for="question">Pregunta</label>
+    <textarea id="question" data-testid="question"
+              placeholder="¿Cuántos días de vacaciones le quedan a EMP-0004?"></textarea>
+    <div class="chips" id="examples"></div>
+    <div class="row">
+      <button id="send" data-testid="send" type="button">Preguntar</button>
+      <button id="clear" class="ghost" type="button">Nueva conversación</button>
+    </div>
+  </div>
+
+  <div class="card" id="answer" data-testid="answer" aria-live="polite"></div>
+</main>
+<script nonce="{{nonce}}">
+(function () {
+  "use strict";
+  var EXAMPLES = [
+    "¿Quién es EMP-0004?",
+    "¿Cuántas vacaciones le quedan a EMP-0001?",
+    "Dame un resumen del área de Tecnología",
+    "¿Quiénes trabajan en Finanzas?",
+    "¿Cuál es el CURP de EMP-0004?"
+  ];
+  var keyInput = document.getElementById("api-key");
+  var question = document.getElementById("question");
+  var send = document.getElementById("send");
+  var answer = document.getElementById("answer");
+  var history = [];
+
+  // La clave vive solo en sessionStorage: nunca en localStorage ni en el código.
+  try { keyInput.value = sessionStorage.getItem("hr-api-key") || ""; } catch (e) {}
+  keyInput.addEventListener("change", function () {
+    try { sessionStorage.setItem("hr-api-key", keyInput.value); } catch (e) {}
+  });
+
+  EXAMPLES.forEach(function (text) {
+    var chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.textContent = text;
+    chip.addEventListener("click", function () { question.value = text; question.focus(); });
+    document.getElementById("examples").appendChild(chip);
+  });
+
+  function add(who, text, meta, isError) {
+    var box = document.createElement("div");
+    box.className = "msg";
+    var label = document.createElement("div");
+    label.className = "who";
+    label.textContent = who;
+    var body = document.createElement("div");
+    // Siempre textContent: una respuesta nunca puede inyectar HTML ni código.
+    body.textContent = text;
+    if (isError) { body.className = "error"; }
+    box.appendChild(label);
+    box.appendChild(body);
+    if (meta) {
+      var line = document.createElement("div");
+      line.className = "meta";
+      line.textContent = meta.line;
+      box.appendChild(line);
+      if (meta.reasoning && meta.reasoning.length) {
+        var det = document.createElement("details");
+        var sum = document.createElement("summary");
+        sum.textContent = "Razonamiento del agente";
+        det.appendChild(sum);
+        meta.reasoning.forEach(function (step, i) {
+          var p = document.createElement("div");
+          p.textContent = (i + 1) + ". " + step;
+          det.appendChild(p);
+        });
+        box.appendChild(det);
+      }
+    }
+    answer.appendChild(box);
+  }
+
+  function errorText(status, data, headers) {
+    if (status === 401) { return "Clave inválida"; }
+    if (status === 429) {
+      return "Demasiadas preguntas; espera " + (headers.get("Retry-After") || "60") +
+        " segundos";
+    }
+    if (status === 422) { return "La pregunta está vacía o es demasiado larga."; }
+    if (status === 400) { return "La pregunta no cumple la política de seguridad."; }
+    if (status === 403) { return "Tu clave no tiene permiso para preguntar."; }
+    if (status === 502) { return "El modelo no está disponible; intenta en un momento."; }
+    return "Ocurrió un error (" + status + "). request_id: " +
+      ((data && data.request_id) || "-");
+  }
+
+  async function ask() {
+    var text = question.value;
+    add("Tú", text || "(vacía)");
+    send.disabled = true;
+    try {
+      var response = await fetch("/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-API-Key": keyInput.value },
+        body: JSON.stringify({ question: text, history: history })
+      });
+      var data = null;
+      try { data = await response.json(); } catch (e) {}
+      if (!response.ok) {
+        add("Error", errorText(response.status, data, response.headers), {
+          line: "request_id: " + ((data && data.request_id) ||
+            response.headers.get("X-Request-ID") || "-")
+        }, true);
+        return;
+      }
+      history.push({ role: "user", content: text });
+      history.push({ role: "assistant", content: data.answer });
+      add("Asistente", data.answer, {
+        line: "request_id: " + data.request_id + " · herramientas: " +
+          (data.tools_used.join(", ") || "ninguna") + " · modelo: " + data.model +
+          " · costo: $" + Number(data.cost_usd).toFixed(6),
+        reasoning: data.reasoning
+      });
+      question.value = "";
+    } catch (e) {
+      add("Error", "No hay conexión con el servidor.", null, true);
+    } finally {
+      send.disabled = false;
+    }
+  }
+
+  send.addEventListener("click", ask);
+  question.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); }
+  });
+  document.getElementById("clear").addEventListener("click", function () {
+    history = [];
+    answer.textContent = "";
+  });
+})();
+</script>
+</body>
+</html>
