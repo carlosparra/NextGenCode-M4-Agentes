@@ -1,0 +1,56 @@
+{
+  "línea base": {
+    "quality": 1.0,
+    "input_tokens": 18562,
+    "output_tokens": 1326,
+    "model_calls": 72,
+    "cost_usd": 0.00842612,
+    "avg_latency_ms": 3.2,
+    "failures": []
+  },
+  "+ routing": {
+    "quality": 1.0,
+    "input_tokens": 18562,
+    "output_tokens": 1326,
+    "model_calls": 72,
+    "cost_usd": 0.00244272,
+    "avg_latency_ms": 2.8,
+    "failures": []
+  },
+  "+ history_window": {
+    "quality": 1.0,
+    "input_tokens": 16890,
+    "output_tokens": 1326,
+    "model_calls": 72,
+    "cost_usd": 0.00793628,
+    "avg_latency_ms": 3.0,
+    "failures": []
+  },
+  "+ compact_prompts": {
+    "quality": 1.0,
+    "input_tokens": 13888,
+    "output_tokens": 1326,
+    "model_calls": 72,
+    "cost_usd": 0.00705668,
+    "avg_latency_ms": 2.6,
+    "failures": []
+  },
+  "+ answer_cache": {
+    "quality": 1.0,
+    "input_tokens": 9281,
+    "output_tokens": 663,
+    "model_calls": 36,
+    "cost_usd": 0.00421306,
+    "avg_latency_ms": 2.9,
+    "failures": []
+  },
+  "todas las palancas de la app": {
+    "quality": 1.0,
+    "input_tokens": 6108,
+    "output_tokens": 663,
+    "model_calls": 36,
+    "cost_usd": 0.00097244,
+    "avg_latency_ms": 2.6,
+    "failures": []
+  }
+}

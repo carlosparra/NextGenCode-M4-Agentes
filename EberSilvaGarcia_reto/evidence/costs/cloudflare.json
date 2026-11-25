@@ -1,0 +1,29 @@
+{
+  "línea base": {
+    "quality": 1.0,
+    "input_tokens": 26855,
+    "output_tokens": 1561,
+    "model_calls": 41,
+    "cost_usd": 0.01138544,
+    "avg_latency_ms": 2988.0,
+    "failures": []
+  },
+  "todas las palancas de la app": {
+    "quality": 1.0,
+    "input_tokens": 10272,
+    "output_tokens": 1187,
+    "model_calls": 19,
+    "cost_usd": 0.00122857,
+    "avg_latency_ms": 1283.5,
+    "failures": []
+  },
+  "+ caché de AI Gateway": {
+    "quality": 1.0,
+    "input_tokens": 8905,
+    "output_tokens": 554,
+    "model_calls": 19,
+    "cost_usd": 0.00058126,
+    "avg_latency_ms": 899.0,
+    "failures": []
+  }
+}

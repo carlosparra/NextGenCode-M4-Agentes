@@ -1,0 +1,130 @@
+[
+  {
+    "id": "EMP-0001",
+    "name": "Ana López",
+    "department": "Tecnología",
+    "role": "Analista de datos",
+    "start_date": "2019-03-04",
+    "status": "activo",
+    "personal": {
+      "curp": "LOPA900312MVZPNN04",
+      "rfc": "LOPA900312AB1",
+      "nss": "12149012345",
+      "personal_email": "ana.lopez.demo@example.com",
+      "phone": "2281234501",
+      "salary_mxn": 38000
+    }
+  },
+  {
+    "id": "EMP-0002",
+    "name": "Luis Pérez",
+    "department": "Ventas",
+    "role": "Ejecutivo de cuenta",
+    "start_date": "2021-07-19",
+    "status": "activo",
+    "personal": {
+      "curp": "PERL880721HDFRSS09",
+      "rfc": "PERL880721CD2",
+      "nss": "21168812345",
+      "personal_email": "luis.perez.demo@example.com",
+      "phone": "5512345602",
+      "salary_mxn": 29000
+    }
+  },
+  {
+    "id": "EMP-0003",
+    "name": "Marta Ruiz",
+    "department": "Tecnología",
+    "role": "Desarrolladora",
+    "start_date": "2016-11-02",
+    "status": "baja",
+    "personal": {
+      "curp": "RUIM850115MPLZRR02",
+      "rfc": "RUIM850115EF3",
+      "nss": "31138512345",
+      "personal_email": "marta.ruiz.demo@example.com",
+      "phone": "2221234503",
+      "salary_mxn": 45000
+    }
+  },
+  {
+    "id": "EMP-0004",
+    "name": "Jorge Díaz",
+    "department": "Tecnología",
+    "role": "Líder técnico",
+    "start_date": "2022-01-10",
+    "status": "activo",
+    "personal": {
+      "curp": "DIAJ920830HVZZRR07",
+      "rfc": "DIAJ920830GH4",
+      "nss": "41169212345",
+      "personal_email": "jorge.diaz.demo@example.com",
+      "phone": "2281234504",
+      "salary_mxn": 52000
+    }
+  },
+  {
+    "id": "EMP-0005",
+    "name": "Sofía Gómez",
+    "department": "Finanzas",
+    "role": "Contadora",
+    "start_date": "2020-05-25",
+    "status": "activo",
+    "personal": {
+      "curp": "GOMS910402MDFMFF05",
+      "rfc": "GOMS910402IJ5",
+      "nss": "51149112345",
+      "personal_email": "sofia.gomez.demo@example.com",
+      "phone": "5512345605",
+      "salary_mxn": 41000
+    }
+  },
+  {
+    "id": "EMP-0006",
+    "name": "Ricardo Torres",
+    "department": "Ventas",
+    "role": "Gerente de ventas",
+    "start_date": "2012-02-13",
+    "status": "activo",
+    "personal": {
+      "curp": "TORR800213HNLRRC01",
+      "rfc": "TORR800213KL6",
+      "nss": "61128012345",
+      "personal_email": "ricardo.torres.demo@example.com",
+      "phone": "8112345606",
+      "salary_mxn": 68000
+    }
+  },
+  {
+    "id": "EMP-0007",
+    "name": "Elena Navarro",
+    "department": "Finanzas",
+    "role": "Analista financiera",
+    "start_date": "2025-09-01",
+    "status": "activo",
+    "personal": {
+      "curp": "NAVE990901MJCVLL08",
+      "rfc": "NAVE990901MN7",
+      "nss": "71259912345",
+      "personal_email": "elena.navarro.demo@example.com",
+      "phone": "3312345607",
+      "salary_mxn": 27000
+    }
+  },
+  {
+    "id": "EMP-0008",
+    "name": "Daniel Herrera",
+    "department": "Recursos Humanos",
+    "role": "Especialista de nómina",
+    "start_date": "2018-06-18",
+    "status": "activo",
+    "personal": {
+      "curp": "HERD870618HVZRRN03",
+      "rfc": "HERD870618OP8",
+      "nss": "81188712345",
+      "personal_email": "daniel.herrera.demo@example.com",
+      "phone": "2281234508",
+      "salary_mxn": 36000
+    }
+  }
+]

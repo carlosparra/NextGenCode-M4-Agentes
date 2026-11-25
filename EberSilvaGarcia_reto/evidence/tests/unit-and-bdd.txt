@@ -1,0 +1,44 @@
+........................................................................ [ 56%]
+.......................................................                  [100%]
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.16-final-0 _______________
+
+Name                            Stmts   Miss  Cover
+---------------------------------------------------
+app/__init__.py                     0      0   100%
+app/agents/__init__.py              0      0   100%
+app/agents/hr_agent.py             63      6    90%
+app/agents/protocol.py             37      4    89%
+app/agents/react.py               115      0   100%
+app/agents/runtime.py              17      0   100%
+app/agents/summary_agent.py       103      0   100%
+app/agents/vacation_agent.py      104      5    95%
+app/clock.py                       25      2    92%
+app/config.py                     143      1    99%
+app/domain/__init__.py              0      0   100%
+app/domain/departments.py          21      0   100%
+app/domain/directory.py            49      0   100%
+app/domain/vacations.py            38      0   100%
+app/llm/__init__.py                 0      0   100%
+app/llm/base.py                    13      0   100%
+app/llm/costs.py                   76      0   100%
+app/llm/fake.py                    97      6    94%
+app/llm/gateway.py                 48      0   100%
+app/main.py                       176      7    96%
+app/mcp_server/__init__.py          0      0   100%
+app/mcp_server/__main__.py         47     27    43%
+app/mcp_server/server.py          121      0   100%
+app/observability/__init__.py       0      0   100%
+app/observability/logs.py          31      0   100%
+app/observability/metrics.py       60      0   100%
+app/observability/tracing.py       31      1    97%
+app/preflight.py                   12      1    92%
+app/security/__init__.py            0      0   100%
+app/security/access.py             44      0   100%
+app/security/guards.py             44      0   100%
+app/security/pii.py                34      0   100%
+app/service.py                    168      5    97%
+---------------------------------------------------
+TOTAL                            1717     65    96%
+Coverage HTML written to dir evidence/tests/coverage-html
+127 passed in 3.53s

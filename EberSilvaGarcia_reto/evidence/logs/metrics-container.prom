@@ -1,0 +1,10 @@
+hr_requests_total{service="hr-assistant"} 0
+hr_error_rate{service="hr-assistant"} 0.0
+hr_latency_p50_ms{service="hr-assistant"} 0.0
+hr_latency_p95_ms{service="hr-assistant"} 0.0
+hr_tokens_input_total{service="hr-assistant"} 0
+hr_tokens_output_total{service="hr-assistant"} 0
+hr_cost_usd_total{service="hr-assistant"} 0.0
+hr_model_calls_total{service="hr-assistant"} 0
+hr_cached_calls_total{service="hr-assistant"} 0
+hr_slo_met{service="hr-assistant"} 1

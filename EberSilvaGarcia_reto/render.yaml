@@ -1,0 +1,62 @@
+# Blueprint de Render. En Render: New > Blueprint, elige el fork y en
+# "Blueprint Path" escribe EberSilvaGarcia_reto/render.yaml.
+# Los secretos (sync: false) se escriben en Render, nunca en el repositorio.
+services:
+  - type: web
+    name: hr-assistant-ebersilva
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: EberSilvaGarcia_reto
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    # Publica en cada commit de la rama; la compuerta de calidad está en la etapa
+    # "test" del Dockerfile: si fallan pruebas o pylint no hay imagen ni despliegue.
+    # (checksPass necesitaría GitHub Actions en la raíz del fork.)
+    autoDeployTrigger: commit
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: MODEL_PROVIDER
+        value: gateway
+      - key: CF_GATEWAY_ID
+        value: hr-assistant
+      - key: CF_GATEWAY_AUTH
+        value: "true"
+      - key: ROUTING
+        value: "true"
+      - key: COMPACT_PROMPTS
+        value: "true"
+      - key: CACHE_TTL_SECONDS
+        value: "3600"
+      - key: ANSWER_CACHE_TTL_SECONDS
+        value: "300"
+      - key: HISTORY_WINDOW
+        value: "6"
+      - key: MODEL_MAX_TOKENS
+        value: "300"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "30"
+      - key: PII_POLICY
+        value: mask
+      - key: WEB_CONCURRENCY
+        value: "2"
+      - key: LANGSMITH_TRACING
+        value: "true"
+      - key: LANGSMITH_PROJECT
+        value: hr-assistant
+      - key: HIDE_INPUTS
+        value: "true"
+      - key: HIDE_OUTPUTS
+        value: "true"
+      - key: API_KEYS
+        sync: false
+      - key: CLIENT_SCOPES
+        sync: false
+      - key: CF_ACCOUNT_ID
+        sync: false
+      - key: CF_API_TOKEN
+        sync: false
+      - key: LANGSMITH_API_KEY
+        sync: false

@@ -1,0 +1,8 @@
+requests     24
+concurrency  8
+seconds      3.92
+rps          6.1
+p50_ms       582.36
+p95_ms       2268.2
+p99_ms       2504.74
+codes        {200: 24}

@@ -1,0 +1,14 @@
+# Solo configuración de herramientas (el proyecto se instala con requirements*.txt)
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-p no:cacheprovider"
+bdd_features_base_dir = "tests/"
+
+[tool.black]
+line-length = 88
+
+[tool.pylint.format]
+max-line-length = 88
+
+[tool.pylint."messages control"]
+disable = ["missing-function-docstring", "redefined-outer-name", "too-few-public-methods"]

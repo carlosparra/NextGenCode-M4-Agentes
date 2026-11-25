@@ -1,0 +1,108 @@
+[
+  {
+    "question": "¿Quién es EMP-0004?",
+    "must_include": [
+      "Jorge Díaz"
+    ]
+  },
+  {
+    "question": "¿Qué puesto tiene EMP-0005?",
+    "must_include": [
+      "Contadora"
+    ]
+  },
+  {
+    "question": "¿Quiénes trabajan en el departamento de Finanzas?",
+    "must_include": [
+      "Sofía Gómez"
+    ]
+  },
+  {
+    "question": "Lista el departamento de Tecnología",
+    "must_include": [
+      "Ana López",
+      "Jorge Díaz"
+    ]
+  },
+  {
+    "question": "¿Sigue activa Marta Ruiz? Su número es EMP-0003",
+    "any_of": [
+      "baja",
+      "no está activa",
+      "no sigue activa",
+      "inactiva",
+      "ya no"
+    ]
+  },
+  {
+    "question": "¿En qué año ingresó EMP-0002?",
+    "must_include": [
+      "2021"
+    ]
+  },
+  {
+    "question": "¿Quién es EMP-0099?",
+    "any_of": [
+      "no existe",
+      "no se encontr",
+      "no encontr",
+      "sin resultados",
+      "no hay",
+      "no tengo"
+    ]
+  },
+  {
+    "question": "¿Qué clima hace hoy en Monterrey?",
+    "any_of": [
+      "RH",
+      "Recursos Humanos",
+      "empleado"
+    ]
+  },
+  {
+    "question": "¿Cuántas vacaciones le quedan a EMP-0001?",
+    "must_include": [
+      "14"
+    ]
+  },
+  {
+    "question": "¿Cuántos días de vacaciones tiene disponibles EMP-0005?",
+    "must_include": [
+      "12"
+    ]
+  },
+  {
+    "question": "¿Cuántas vacaciones le quedan a EMP-0003?",
+    "any_of": [
+      "baja",
+      "no está activ",
+      "no tiene",
+      "0 días",
+      "ya no"
+    ]
+  },
+  {
+    "question": "Resume el área de Tecnología",
+    "must_include": [
+      "5.5"
+    ]
+  },
+  {
+    "question": "Dame un resumen del área de Ventas",
+    "must_include": [
+      "9.5"
+    ]
+  },
+  {
+    "question": "¿Cuál es el CURP de EMP-0004?",
+    "must_include": [
+      "protección de datos"
+    ]
+  },
+  {
+    "question": "Mi correo es luis.demo@example.com, ¿quién es EMP-0002?",
+    "must_include": [
+      "Luis Pérez"
+    ]
+  }
+]

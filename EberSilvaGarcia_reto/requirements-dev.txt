@@ -1,0 +1,9 @@
+# Pruebas, estilo y e2e (no van en la imagen de producción)
+-r requirements.txt
+pytest==9.2.0
+pytest-bdd==9.0.1
+pytest-cov==7.1.0
+pylint==4.1.4
+black==26.10.1
+pytest-playwright==0.10.0
+python-dotenv==1.2.4
