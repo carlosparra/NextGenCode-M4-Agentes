@@ -3,6 +3,11 @@
 **Reto del Módulo 4 · Certificado en Desarrollo de Software con IA Generativa**
 Autor: Eber Silva García ([@ebersilva](https://github.com/ebersilva))
 
+| | |
+| --- | --- |
+| **Sistema publicado** | https://hr-assistant-ebersilva.onrender.com (página, `/docs`, `/dashboard`, `/mcp`) |
+| **Video de demostración** | https://youtu.be/FoUmllzK0Rs (3 min) |
+
 El HR Assistant del curso convertido en un **sistema multiagente con LangGraph**,
 expuesto como **servidor MCP** (stdio, SSE y Streamable HTTP) y como **API REST**
 lista para producción: contenedor, observabilidad con LangSmith, costos medidos

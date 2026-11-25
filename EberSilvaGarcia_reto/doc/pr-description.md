@@ -61,10 +61,15 @@ Claude Desktop, y cómo desplegar en Render.
 
 ## Video de demostración
 
-VIDEO_LINK (4 min 30 s: host MCP con las dos herramientas, página en Render, trazas en
-LangSmith, tablero y análisis de costos).
+**https://youtu.be/FoUmllzK0Rs** (3 min 08 s): Claude Code como host MCP usando las
+herramientas `vacation_balance` (ReAct, con su razonamiento paso a paso) y
+`department_summary` (reflection), un error controlado, la página publicada en Render
+(datos protegidos, PII enmascarada, clave inválida), la traza en LangSmith buscada por
+`request_id`, los logs de Cloudflare AI Gateway, el tablero de métricas y el análisis de
+costos.
 
-Sistema publicado: https://hr-assistant-ebersilva.onrender.com (`/docs` para la API).
+Sistema publicado: https://hr-assistant-ebersilva.onrender.com (`/docs` para la API,
+`/dashboard` para el tablero, `/mcp` para hosts MCP remotos con clave).
 
 ## Notas adicionales
 
