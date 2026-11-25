@@ -45,7 +45,9 @@ docker run -p 8000:8000 --env-file .env hr-assistant
    servicio esté **Live**:
 
    ```bash
-   export SMOKE_API_KEY='<la clave de portal>'
+   export SMOKE_API_KEY='<la clave de portal>'      # permiso ask
+   export SMOKE_MCP_KEY='<la clave de claude>'      # permiso mcp
+   export SMOKE_METRICS_KEY='<la clave de grafana>' # permiso metrics
    python scripts/smoke.py https://hr-assistant-ebersilva.onrender.com
    ```
 

@@ -27,14 +27,22 @@ from app.domain.vacations import (
 
 SYSTEM_PROMPT = (
     "[agent:vacation] HRA-SYSTEM-PROMPT. Eres el especialista en vacaciones de RH "
-    "(LFT México, art. 76). Responde SOLO un objeto JSON. Para usar una herramienta: "
-    '{"thought":"<por qué>","tool":"<nombre>","args":{...}}. Para terminar: '
-    '{"answer":"<explicación breve en español con los números>"}. '
-    "Herramientas: get_employee{employee_id}; compute_entitlement{employee_id}; "
-    "get_taken_days{employee_id,period_start,period_end}. Úsalas en ese orden y pasa a "
-    "get_taken_days exactamente el period_start y period_end de compute_entitlement. "
-    "No inventes números: usa solo los resultados de las herramientas. Si el empleado "
-    "no existe o está de baja, responde de inmediato."
+    "(LFT México, art. 76). Respondes SOLO con UN objeto JSON. Cada paso DEBE incluir "
+    '"thought" con tu razonamiento en una frase. Herramienta: '
+    '{"thought":"<por qué>","tool":"<nombre>","args":{...}}. Final: '
+    '{"thought":"<conclusión>","answer":"<explicación breve con los números>"}. '
+    "Herramientas, en este orden: get_employee{employee_id}; "
+    "compute_entitlement{employee_id}; get_taken_days{employee_id,period_start,"
+    "period_end} con el period_start y period_end de compute_entitlement. No inventes "
+    "números. Si el empleado no existe o está de baja, responde de inmediato. Ejemplo: "
+    '{"thought":"Primero confirmo que el empleado existe y está activo",'
+    '"tool":"get_employee","args":{"employee_id":"EMP-0002"}} -> '
+    '{"thought":"Está activo; calculo los días que le tocan por antigüedad",'
+    '"tool":"compute_entitlement","args":{"employee_id":"EMP-0002"}} -> '
+    '{"thought":"Le tocan 20 días; reviso los tomados en el periodo vigente",'
+    '"tool":"get_taken_days","args":{"employee_id":"EMP-0002",'
+    '"period_start":"2026-07-19","period_end":"2027-07-19"}} -> '
+    '{"thought":"Tomó 4 de 20; el saldo es 16","answer":"Le quedan 16 días."}'
 )
 VERBOSE_SUFFIX = (
     " Recuerda: eres un asistente cuidadoso, profesional y amable. Explica cada paso "
@@ -250,7 +258,16 @@ class VacationAgent:
             "answer": answer,
             "verified_by_code": True,
             "model_answer_kept": bool(verified),
-            "reasoning": state.get("thoughts", []),
+            "reasoning": state.get("thoughts", [])
+            + (
+                []
+                if verified
+                else [
+                    "Verificación por código: la conclusión del modelo no cuadraba "
+                    f"con el cálculo; se entrega el saldo verificado "
+                    f"({report.get('balance_days', 0)} días)."
+                ]
+            ),
             "tools_used": state.get("tools_used", []),
             "steps": state.get("steps", 0),
             "stopped": state.get("stopped", False),

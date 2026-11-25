@@ -92,6 +92,7 @@ def test_vacation_agent_cannot_leave_its_scope(make_service, log_stream):
         "Solo puedes consultar al empleado EMP-0004" in model.calls[-1][-1]["content"]
     )
     assert report["balance_days"] == 10 and not report["model_answer_kept"]
+    assert report["reasoning"][-1].startswith("Verificación por código")
     actions = [e.get("reason") for e in log_events(log_stream) if e["event"] == "audit"]
     assert "out_of_scope" in actions and "numbers_mismatch" in actions
 
