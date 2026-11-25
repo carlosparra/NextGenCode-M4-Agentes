@@ -11,8 +11,10 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /health
-    # La imagen solo se construye si pasan las pruebas y pylint (etapa "test").
-    autoDeployTrigger: checksPass
+    # Publica en cada commit de la rama; la compuerta de calidad está en la etapa
+    # "test" del Dockerfile: si fallan pruebas o pylint no hay imagen ni despliegue.
+    # (checksPass necesitaría GitHub Actions en la raíz del fork.)
+    autoDeployTrigger: commit
     envVars:
       - key: ENVIRONMENT
         value: production

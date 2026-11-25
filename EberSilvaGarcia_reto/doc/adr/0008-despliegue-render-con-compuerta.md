@@ -15,8 +15,9 @@ raíz del repositorio y el reto pide no tocar nada fuera de la carpeta.
   fallan, no hay imagen y Render no publica.
 - Imagen mínima `python:3.12-slim`, usuario sin root (uid 10001), código de solo lectura
   para el proceso, `HEALTHCHECK` y `preflight` antes de uvicorn.
-- `render.yaml` con `rootDir: EberSilvaGarcia_reto`, plan gratuito, `healthCheckPath`
-  y secretos con `sync: false`.
+- `render.yaml` con `rootDir: EberSilvaGarcia_reto`, plan gratuito, `healthCheckPath`,
+  secretos con `sync: false` y `autoDeployTrigger: commit`: con `checksPass` Render
+  esperaba checks de GitHub que el fork no ejecuta y no publicaba (se comprobó en vivo).
 - `.github/workflows/ci.yml` queda dentro de la carpeta (style → unit → e2e → security →
   docker) y se activa copiándolo a la raíz del fork.
 
