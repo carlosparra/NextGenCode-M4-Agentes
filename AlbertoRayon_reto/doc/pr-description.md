@@ -27,7 +27,7 @@ flowchart LR
         SV --> R["summary_agent<br/>Reflexión"]
         D & V & R --> O["Guarda de salida"]
     end
-    D & V & R --> M["Workers AI vía AI Gateway"]
+    D & V & R --> M["Cloudflare Workers AI"]
     S --> L["Logs JSON, métricas, LangSmith"]
 ```
 
@@ -56,19 +56,22 @@ por la guarda de salida, y todo queda en el log, las métricas y la traza.
 | Criterio | Qué se entrega | Dónde verlo |
 | --- | --- | --- |
 | Arquitectura y despliegue | Contenedor con compuerta de pruebas, Blueprint de Render, `/health`, Swagger en `/docs`, prueba de carga | `doc/architecture.md`, `doc/deployment.md`, `evidence/load.txt` |
-| Observabilidad | `request_id` de punta a punta, log JSON, métricas técnicas y de negocio, tablero, formato Prometheus, trazas LangSmith | `doc/observability.md`, `evidence/logs.txt` |
-| Costos | Seis palancas y una ablación contra la línea base | `doc/costs.md`, `evidence/costs-fake.md` |
+| Observabilidad | `request_id` de punta a punta, log JSON, métricas técnicas y de negocio, tablero, formato Prometheus, trazas LangSmith | `doc/observability.md`, `evidence/logs.txt`, `evidence/langsmith.txt` |
+| Costos | Seis palancas y una ablación contra la línea base | `doc/costs.md`, `evidence/costs-workers.md` |
 | Seguridad | 20 controles, cada uno con su código y su prueba; compliance como código | `doc/security.md`, `doc/compliance-checklist.md` |
 | Documentación | README, arquitectura, 6 ADR, guías por tema y evidencia real | `README.md`, `doc/`, `evidence/` |
 
 ## Resultados medidos
 
-- Pruebas: 154 unitarias, BDD y MCP con 98.6 % de cobertura; 6 de navegador; pylint
+- Pruebas: 156 unitarias, BDD y MCP con 98 % de cobertura; 6 de navegador; pylint
   10/10 (`evidence/tests.txt`).
 - Verificaciones del curso (`sesion04/verification`): `unit`, `contract` (22
   pruebas), `qa`, `e2e` y `evaluate` en OK (`evidence/course-verification.txt`).
-- Costos con el modelo simulado: misma calidad (100 %) y 75.5 % menos costo sin
-  cachés; 87.7 % menos con la caché de respuestas (`evidence/costs-fake.md`).
+- Costos con el modelo real (Workers AI): misma calidad (100 %) y 76.1 % menos costo
+  sin cachés; 88.1 % menos con la caché de respuestas, con 1 de 15 casos fallado en
+  esa corrida (`doc/costs.md`, `evidence/costs-workers.md`).
+- Trazas en LangSmith con el árbol completo, tokens y costo por llamada, sin texto de
+  preguntas ni respuestas (`evidence/langsmith.txt`).
 - Carga: 400 peticiones con 40 en paralelo contra el contenedor, todas con `200`
   (`evidence/load.txt`).
 
@@ -102,6 +105,8 @@ PENDIENTE (enlace al video de 3 a 5 minutos).
 - Las métricas, el límite de peticiones y la caché de respuestas viven en la memoria
   de cada proceso; con varias copias haría falta un almacén compartido.
 - Las guardas de entrada son patrones: son una capa más, no la única.
+- El servicio llama a Workers AI directo; la caché de AI Gateway está implementada
+  y probada con respuestas simuladas, pero no medida contra el servicio real.
 - El pipeline de CI queda dentro de la carpeta y GitHub no lo ejecuta desde ahí; la
   compuerta de pruebas es la etapa `test` del `Dockerfile`.
 - Los datos de empleados son ficticios.

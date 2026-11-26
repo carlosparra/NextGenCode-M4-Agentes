@@ -28,6 +28,7 @@ def test_defaults_are_safe_for_development():
     {"ENVIRONMENT": "staging"},
     {"CLIENT_SCOPES": "portal:admin"},
     {"MODEL_PROVIDER": "gateway"},
+    {"MODEL_PROVIDER": "workers", "CF_ACCOUNT_ID": "acc"},
 ])
 def test_invalid_values_refuse_to_start(env):
     with pytest.raises(ConfigError):

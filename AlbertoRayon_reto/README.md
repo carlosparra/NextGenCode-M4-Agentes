@@ -87,7 +87,7 @@ Todas están en [`.env.example`](.env.example) con su explicación. Las principa
 | Variable | Por omisión | Para qué |
 | --- | --- | --- |
 | `ENVIRONMENT` | `development` | `production` aplica las reglas de compliance |
-| `MODEL_PROVIDER` | `fake` | `gateway` usa Cloudflare Workers AI |
+| `MODEL_PROVIDER` | `fake` | `workers` usa Workers AI directo; `gateway`, a través de AI Gateway |
 | `API_KEYS` | vacía | `cliente:clave,cliente2:clave2` (secreto) |
 | `CLIENT_SCOPES` | todos | Permisos por cliente: `ask`, `mcp`, `metrics` |
 | `CF_ACCOUNT_ID`, `CF_GATEWAY_ID`, `CF_API_TOKEN` | | Cuenta, gateway y token de Cloudflare |
@@ -98,10 +98,14 @@ Todas están en [`.env.example`](.env.example) con su explicación. Las principa
 ### Con el modelo real
 
 ```bash
-MODEL_PROVIDER=gateway
+MODEL_PROVIDER=workers
 CF_ACCOUNT_ID=<tu account id>
 CF_API_TOKEN=<token con permiso de Workers AI>
 ```
+
+Con `MODEL_PROVIDER=gateway` las llamadas pasan por AI Gateway, que agrega caché y
+analítica; requiere un gateway y permiso para usarlo (ver
+[`doc/deployment.md`](doc/deployment.md)).
 
 ### Con Docker
 
@@ -162,11 +166,12 @@ SMOKE_API_KEY=... SMOKE_MCP_KEY=... SMOKE_METRICS_KEY=... \
 
 | Aspecto | Resultado | Evidencia |
 | --- | --- | --- |
-| Pruebas | Ver salida real | [`evidence/tests.txt`](evidence/tests.txt) |
-| Contrato del curso (`sesion04/verification`) | Ver salida real | [`evidence/course-verification.txt`](evidence/course-verification.txt) |
-| Costos | Ver tabla de ablación | [`doc/costs.md`](doc/costs.md) |
-| Concurrencia | Ver prueba de carga | [`evidence/load.txt`](evidence/load.txt) |
-| Seguridad | Controles con su código y su prueba | [`doc/security.md`](doc/security.md) |
+| Pruebas | 156 unitarias, BDD y MCP con 98 % de cobertura; 6 de navegador; pylint 10/10 | [`evidence/tests.txt`](evidence/tests.txt) |
+| Contrato del curso (`sesion04/verification`) | `unit`, `contract`, `qa`, `e2e` y `evaluate` en OK | [`evidence/course-verification.txt`](evidence/course-verification.txt) |
+| Costos con el modelo real | 76.1 % menos que la línea base, con la misma calidad (100 %) | [`doc/costs.md`](doc/costs.md) |
+| Trazas | Árbol completo en LangSmith, con tokens y costo, sin texto | [`evidence/langsmith.txt`](evidence/langsmith.txt) |
+| Concurrencia | 400 peticiones, 40 en paralelo, todas con `200` | [`evidence/load.txt`](evidence/load.txt) |
+| Seguridad | 20 controles, cada uno con su código y su prueba | [`doc/security.md`](doc/security.md) |
 
 ## Estructura
 

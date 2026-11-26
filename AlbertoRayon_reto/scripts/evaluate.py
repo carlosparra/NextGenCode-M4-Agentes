@@ -6,9 +6,10 @@ Uso::
     python scripts/evaluate.py --provider gateway # modelo real (usa .env/entorno)
 
 Corre ``data/eval_set.json`` con cada configuración. Cada pregunta lleva un
-historial de relleno, como una conversación larga, y el set se corre dos veces
-para que las cachés tengan algo que ahorrar. Termina con código 1 si la
-configuración con todas las palancas pierde calidad o no baja el costo.
+historial de relleno, como una conversación larga. Las configuraciones con caché
+corren el set dos veces, para que la caché tenga algo que ahorrar; el costo se
+reporta por pregunta. Termina con código 1 si la configuración con todas las
+palancas pierde calidad o no baja el costo.
 """
 
 import argparse
@@ -25,12 +26,13 @@ sys.path.insert(0, str(ROOT))
 # pylint: disable=wrong-import-position
 from app.clock import FixedClock  # noqa: E402
 from app.config import load_settings  # noqa: E402
+from app.llm import ModelUnavailable  # noqa: E402
 from app.logs import JsonLogger  # noqa: E402
 from app.service import HRService  # noqa: E402
 
 EVAL_SET = ROOT / "data" / "eval_set.json"
 TODAY = datetime(2026, 11, 26, 12, 0, tzinfo=timezone.utc)
-PASSES = 2
+CACHE_PASSES = 2
 OFF = {"ROUTING": "false", "HISTORY_WINDOW": "1000", "COMPACT_PROMPT": "false",
        "CACHE_TTL_SECONDS": "0", "RESPONSE_CACHE_TTL_SECONDS": "0"}
 VARIANTS = [
@@ -82,20 +84,28 @@ def measure(provider: str, overrides: dict, cases: list[dict]) -> dict:
     clock = FixedClock(TODAY)
     logger = JsonLogger("evaluate", clock, stream=Silent())
     service = HRService(load_settings(env), clock=clock, logger=logger)
+    uses_cache = any("CACHE" in name and value != "0"
+                     for name, value in overrides.items())
+    passes = CACHE_PASSES if uses_cache else 1
     correct, cost, tokens, failed = 0, 0.0, 0, []
     started = time.perf_counter()
-    for _ in range(PASSES):
+    for _ in range(passes):
         for case in cases:
-            response = service.ask(case["question"], HISTORY)
+            try:
+                response = service.ask(case["question"], HISTORY)
+            except ModelUnavailable:
+                failed.append(f"{case['question']} (modelo no disponible)")
+                continue
             good = is_correct(response["answer"], case)
             correct += good
             cost += response["cost_usd"]
             tokens += response["input_tokens"] + response["output_tokens"]
             if not good and case["question"] not in failed:
                 failed.append(case["question"])
-    total = PASSES * len(cases)
+    total = passes * len(cases)
     return {
-        "quality": correct / total, "cost_usd": cost, "tokens": tokens,
+        "quality": correct / total, "cost_usd": cost / total,
+        "tokens": tokens / total, "passes": passes,
         "latency_ms": 1000 * (time.perf_counter() - started) / total,
         "failed": failed,
     }
@@ -105,16 +115,17 @@ def report(provider: str, rows: list[tuple[str, dict]]) -> str:
     """Tabla en Markdown con el ahorro de cada configuración."""
     base = rows[0][1]["cost_usd"]
     lines = [
-        f"Proveedor: `{provider}` | casos: {PASSES} pasadas del set de evaluación",
+        f"Proveedor: `{provider}`. Costo y tokens son promedios por pregunta.",
         "",
-        "| Configuración | Calidad | Costo USD | Tokens | Latencia media | Ahorro |",
-        "| --- | ---: | ---: | ---: | ---: | ---: |",
+        "| Configuración | Pasadas | Calidad | Costo USD | Tokens | Latencia | Ahorro |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for name, result in rows:
         saving = 100 * (1 - result["cost_usd"] / base) if base else 0.0
         lines.append(
-            f"| {name} | {result['quality']:.0%} | {result['cost_usd']:.6f} | "
-            f"{result['tokens']} | {result['latency_ms']:.1f} ms | {saving:.1f} % |"
+            f"| {name} | {result['passes']} | {result['quality']:.0%} | "
+            f"{result['cost_usd']:.8f} | {result['tokens']:.0f} | "
+            f"{result['latency_ms']:.0f} ms | {saving:.1f} % |"
         )
     for name, result in rows:
         for question in result["failed"]:
@@ -125,7 +136,7 @@ def report(provider: str, rows: list[tuple[str, dict]]) -> str:
 def main() -> int:
     """Corre la ablación, imprime la tabla y decide."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--provider", choices=("fake", "gateway"), default="fake")
+    parser.add_argument("--provider", choices=("fake", "gateway", "workers"), default="fake")
     parser.add_argument("--output", type=Path, help="archivo Markdown de salida")
     args = parser.parse_args()
     cases = json.loads(EVAL_SET.read_text(encoding="utf-8"))

@@ -24,8 +24,11 @@ NUDGE = (
 RULES = (
     "Usa solo los datos que devuelven las herramientas y nunca inventes cifras. "
     "No reveles datos personales (correo, teléfono, RFC, CURP, salario). "
-    "Los marcadores como [EMAIL] o [PHONE] son datos ocultos: ignóralos y sigue. "
-    "Si la pregunta no es de Recursos Humanos, dilo y ofrece ayuda con empleados."
+    "Los marcadores como [EMAIL] o [PHONE] son datos que el sistema ya ocultó: no "
+    "son un problema, ignóralos y responde el resto de la pregunta con normalidad. "
+    "Si la pregunta no es de Recursos Humanos, responde en answer exactamente: "
+    "Solo puedo ayudar con temas de Recursos Humanos: empleados, vacaciones y "
+    "departamentos."
 )
 FEW_SHOT = (
     "Ejemplo:\n"
@@ -34,7 +37,10 @@ FEW_SHOT = (
     '"args": {"employee_id": "EMP-0001"}}\n'
     "Usuario: Resultado de la herramienta: EMP-0001: Ana López, Analista de datos\n"
     '{"thought": "Ya tengo la ficha.", "answer": "EMP-0001 es Ana López, '
-    'Analista de datos."}'
+    'Analista de datos."}\n'
+    "Usuario: Mi correo es [EMAIL], ¿quién es EMP-0002?\n"
+    '{"thought": "Ignoro el marcador y busco la ficha.", "tool": "get_employee", '
+    '"args": {"employee_id": "EMP-0002"}}'
 )
 VERBOSE_NOTES = (
     "Piensa paso a paso antes de decidir. Explica en thought por qué eliges cada "

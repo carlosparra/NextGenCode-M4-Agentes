@@ -20,7 +20,9 @@ from app.vacations import years_of_service
 MAX_REVISIONS = 2
 SYSTEM = (
     "Eres analista de Recursos Humanos. Redactas resúmenes breves en español usando "
-    "solo los hechos que recibes. No agregues cifras, nombres ni datos personales."
+    "solo los hechos que recibes. Menciona a cada persona por su nombre completo y "
+    "copia las cifras de los hechos con dígitos (escribe 2, no dos). No agregues "
+    "cifras ni nombres que no estén en los hechos, ni correos, teléfonos o RFC."
 )
 NUMBER = re.compile(r"\d+(?:\.\d+)?")
 
@@ -62,7 +64,8 @@ def department_facts(directory: Directory, department: str, today) -> dict:
         "department": official,
         "names": [person.name for person in active],
         "lines": [
-            f"El departamento de {official} tiene {len(active)} personas activas "
+            f"El departamento de {official} tiene {len(active)} "
+            f"{'persona activa' if len(active) == 1 else 'personas activas'} "
             f"y {len(people) - len(active)} de baja.",
             f"Personas activas: {roster or 'ninguna'}.",
             f"Antigüedad promedio de las personas activas: {average} años.",

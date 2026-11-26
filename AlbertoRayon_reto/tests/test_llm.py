@@ -97,6 +97,21 @@ def test_gateway_skips_the_cache_when_ttl_is_zero():
     assert "cf-aig-cache-ttl" not in seen["headers"]
 
 
+def test_workers_provider_calls_workers_ai_directly_without_cache_headers():
+    seen = {}
+
+    def handler(request):
+        seen["url"] = str(request.url)
+        seen["headers"] = request.headers
+        return httpx.Response(200, json={"choices": [{"message": {"content": "x"}}]})
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    settings = make_settings(**{**GATEWAY, "MODEL_PROVIDER": "workers"})
+    GatewayModel(settings, client).complete(user("hola"), SMALL)
+    assert seen["url"].endswith("/accounts/acc/ai/v1/chat/completions")
+    assert "cf-aig-skip-cache" not in seen["headers"]
+
+
 @pytest.mark.parametrize("response", [
     httpx.Response(401, json={"errors": [{"code": 2009}]}),
     httpx.Response(200, json={"unexpected": True}),

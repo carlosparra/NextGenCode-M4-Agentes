@@ -50,12 +50,27 @@ Para generar claves largas sin que pasen por la pantalla:
 python -c "import secrets; print(secrets.token_urlsafe(32))" | wl-copy
 ```
 
+### Workers AI directo o vía AI Gateway
+
+| `MODEL_PROVIDER` | Cómo llama | Qué necesita | Qué da de más |
+| --- | --- | --- | --- |
+| `workers` | Directo a Workers AI | Token con permiso de Workers AI | Nada: es el camino mínimo |
+| `gateway` | A través de AI Gateway | Además, un gateway (`CF_GATEWAY_ID`, por omisión `default`) y permiso para usarlo | Caché (`CACHE_TTL_SECONDS`) y analítica del gateway |
+
+El Blueprint publica con `workers`, porque el token con el que se probó no tiene
+permiso de AI Gateway (la llamada vía gateway responde `401`, código 2009). Para
+pasar a `gateway`:
+
+1. En Cloudflare, entra a **AI > AI Gateway** y comprueba que exista el gateway
+   `default`; si no, créalo.
+2. Si el gateway es autenticado, crea un token con el permiso **AI Gateway: Run** y
+   ponlo en `CF_AIG_TOKEN` (o agrega ese permiso al token de `CF_API_TOKEN`).
+3. Cambia `MODEL_PROVIDER` a `gateway` en Render > Environment.
+
 ### Detalles a tener en cuenta
 
 - `CLIENT_SCOPES` ya viene en el Blueprint: `portal:ask,claude:mcp,grafana:metrics`.
   Los nombres de cliente de `API_KEYS` deben coincidir, o el servicio no arranca.
-- Si el gateway de Cloudflare es autenticado, la llamada falla con `401` (código
-  2009). Agrega `CF_AIG_TOKEN` con un token que tenga el permiso AI Gateway Run.
 - Si tu cuenta de LangSmith es EU, agrega `LANGSMITH_ENDPOINT`.
 - Render define `RENDER_EXTERNAL_HOSTNAME`; la aplicación lo agrega solo a los hosts
   permitidos del MCP remoto.

@@ -11,6 +11,8 @@ from typing import Mapping
 ROOT = Path(__file__).resolve().parent.parent
 SCOPES = frozenset({"ask", "mcp", "metrics"})
 MIN_KEY_CHARS = 16
+# gateway: Workers AI a través de AI Gateway; workers: Workers AI directo, sin caché
+REAL_PROVIDERS = ("gateway", "workers")
 TRUE_VALUES = {"1", "true", "yes", "on"}
 FALSE_VALUES = {"0", "false", "no", "off", ""}
 
@@ -156,18 +158,19 @@ def check_compliance(settings: Settings) -> None:
     :type settings: Settings
     :raises ConfigError: Con la regla que no se cumple
     """
-    if settings.model_provider == "gateway":
-        missing = [
-            name
-            for name, value in (
-                ("CF_ACCOUNT_ID", settings.cf_account_id),
-                ("CF_GATEWAY_ID", settings.cf_gateway_id),
-                ("CF_API_TOKEN", settings.cf_api_token),
-            )
-            if not value
+    if settings.model_provider in REAL_PROVIDERS:
+        required = [
+            ("CF_ACCOUNT_ID", settings.cf_account_id),
+            ("CF_API_TOKEN", settings.cf_api_token),
         ]
+        if settings.model_provider == "gateway":
+            required.append(("CF_GATEWAY_ID", settings.cf_gateway_id))
+        missing = [name for name, value in required if not value]
         if missing:
-            raise ConfigError(f"MODEL_PROVIDER=gateway necesita {', '.join(missing)}")
+            raise ConfigError(
+                f"MODEL_PROVIDER={settings.model_provider} necesita "
+                f"{', '.join(missing)}"
+            )
     if settings.environment != "production":
         return
     if settings.model_provider == "fake":
@@ -201,8 +204,8 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
     """
     env = os.environ if env is None else env
     provider = env.get("MODEL_PROVIDER", "fake").strip().lower()
-    if provider not in {"fake", "gateway"}:
-        raise ConfigError("MODEL_PROVIDER debe ser fake o gateway")
+    if provider not in ("fake", *REAL_PROVIDERS):
+        raise ConfigError("MODEL_PROVIDER debe ser fake, gateway o workers")
     environment = env.get("ENVIRONMENT", "development").strip().lower()
     if environment not in {"development", "production"}:
         raise ConfigError("ENVIRONMENT debe ser development o production")

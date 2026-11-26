@@ -27,6 +27,9 @@ GATEWAY_URL = (
     "https://gateway.ai.cloudflare.com/v1/{account}/{gateway}"
     "/workers-ai/v1/chat/completions"
 )
+DIRECT_URL = (
+    "https://api.cloudflare.com/client/v4/accounts/{account}/ai/v1/chat/completions"
+)
 MILLION = 1_000_000
 
 
@@ -178,18 +181,27 @@ class FakeModel:
 
 
 class GatewayModel:
-    """Cloudflare Workers AI a través de AI Gateway."""
+    """Cloudflare Workers AI, a través de AI Gateway o directo.
+
+    Con ``MODEL_PROVIDER=workers`` la llamada va directo a Workers AI: sirve cuando
+    el token no tiene permiso de AI Gateway, pero no hay caché ni analítica del
+    gateway.
+    """
 
     def __init__(self, settings: Settings, client: httpx.Client | None = None):
         self._settings = settings
         self._client = client or httpx.Client(timeout=settings.model_timeout_seconds)
-        self._url = GATEWAY_URL.format(
+        self._direct = settings.model_provider == "workers"
+        template = DIRECT_URL if self._direct else GATEWAY_URL
+        self._url = template.format(
             account=settings.cf_account_id, gateway=settings.cf_gateway_id
         )
 
     def _headers(self) -> dict:
         settings = self._settings
         headers = {"Authorization": f"Bearer {settings.cf_api_token}"}
+        if self._direct:
+            return headers
         if settings.cf_aig_token:
             headers["cf-aig-authorization"] = f"Bearer {settings.cf_aig_token}"
         if settings.cache_ttl_seconds > 0:
@@ -255,6 +267,10 @@ class ModelCaller:
     @traced("model_call", run_type="llm")
     def _traced_call(self, messages: list[dict], model: str) -> dict:
         completion = self._model.complete(messages, model)
+        input_cost = output_cost = 0.0
+        if not completion.cached:
+            input_cost = self._prices.cost(model, completion.input_tokens, 0)
+            output_cost = self._prices.cost(model, 0, completion.output_tokens)
         return {
             "completion": completion,
             "content": completion.content,
@@ -262,6 +278,9 @@ class ModelCaller:
                 "input_tokens": completion.input_tokens,
                 "output_tokens": completion.output_tokens,
                 "total_tokens": completion.input_tokens + completion.output_tokens,
+                "input_cost": input_cost,
+                "output_cost": output_cost,
+                "total_cost": input_cost + output_cost,
             },
             "ls_model_name": model,
         }

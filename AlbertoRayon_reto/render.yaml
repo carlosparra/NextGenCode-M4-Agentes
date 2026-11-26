@@ -17,8 +17,10 @@ services:
     envVars:
       - key: ENVIRONMENT
         value: production
+      # workers: Workers AI directo. Cambia a gateway cuando exista el gateway
+      # "default" y el token tenga permiso de AI Gateway (ver doc/deployment.md).
       - key: MODEL_PROVIDER
-        value: gateway
+        value: workers
       - key: CF_GATEWAY_ID
         value: default
       - key: HIDE_INPUTS

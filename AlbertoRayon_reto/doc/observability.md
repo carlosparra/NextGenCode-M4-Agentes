@@ -68,6 +68,9 @@ Con `LANGSMITH_TRACING=true` y `LANGSMITH_API_KEY`:
 - `ModelCaller` agrega cada llamada al modelo como un paso `llm`, con
   `usage_metadata` (tokens de entrada y de salida) y el nombre del modelo, para que
   LangSmith muestre tokens y costo.
+
+Lectura real de tres trazas, con su árbol de pasos, tokens y costo:
+[`../evidence/langsmith.txt`](../evidence/langsmith.txt).
 - Cada herramienta es un paso `tool`.
 - La traza lleva `request_id`, `client` y `channel` en sus metadatos.
 

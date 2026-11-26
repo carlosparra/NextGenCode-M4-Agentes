@@ -108,9 +108,9 @@ class HRService:  # pylint: disable=too-many-instance-attributes
         self._cache = ResponseCache(settings.response_cache_ttl_seconds, self.clock)
         if model is None:
             model = (
-                GatewayModel(settings)
-                if settings.model_provider == "gateway"
-                else FakeModel(self.directory.departments())
+                FakeModel(self.directory.departments())
+                if settings.model_provider == "fake"
+                else GatewayModel(settings)
             )
         caller = ModelCaller(model, self._prices)
         employee_tool = Tool(
