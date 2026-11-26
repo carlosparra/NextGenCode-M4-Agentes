@@ -1,0 +1,14 @@
+$ docker build -t hr-assistant-reto .   (etapa test dentro de la construcción)
+154 passed in 3.92s
+Your code has been rated at 10.00/10
+
+$ docker run --rm -e ENVIRONMENT=production -e MODEL_PROVIDER=fake hr-assistant-reto
+[FAIL] configuración: En producción no se permite MODEL_PROVIDER=fake
+código de salida: 1
+
+$ docker run --rm hr-assistant-reto sh -c 'id -un; touch /srv/x'
+hr
+touch: cannot touch '/srv/x': Permission denied
+
+$ docker images hr-assistant-reto
+tamaño: 319MB

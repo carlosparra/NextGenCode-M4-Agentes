@@ -1,0 +1,4 @@
+Contenedor hr-assistant-reto, 2 procesos de uvicorn, modelo simulado.
+peticiones=400 concurrencia=40 duración=1.99s rps=201.3
+códigos: 200=400
+latencia ms: p50=217.2 p95=332.4 p99=340.6 max=407.5

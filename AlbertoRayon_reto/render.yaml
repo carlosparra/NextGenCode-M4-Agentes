@@ -1,0 +1,46 @@
+# Blueprint de Render. Al crearlo, indica como ruta del Blueprint:
+#   AlbertoRayon_reto/render.yaml
+services:
+  - type: web
+    name: hr-assistant-albertorayon
+    runtime: docker
+    plan: free
+    branch: reto
+    rootDir: AlbertoRayon_reto
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    # En este repositorio el pipeline de CI vive dentro de la carpeta y GitHub no lo
+    # ejecuta, así que checksPass nunca publicaría. La compuerta es la etapa test
+    # del Dockerfile: si las pruebas fallan, la imagen no se construye.
+    autoDeployTrigger: commit
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: MODEL_PROVIDER
+        value: gateway
+      - key: CF_GATEWAY_ID
+        value: default
+      - key: HIDE_INPUTS
+        value: "true"
+      - key: HIDE_OUTPUTS
+        value: "true"
+      - key: LANGSMITH_TRACING
+        value: "true"
+      - key: LANGSMITH_PROJECT
+        value: hr-assistant
+      - key: CACHE_TTL_SECONDS
+        value: "300"
+      - key: RESPONSE_CACHE_TTL_SECONDS
+        value: "300"
+      - key: CLIENT_SCOPES
+        value: portal:ask,claude:mcp,grafana:metrics
+      # Secretos: se escriben en Render, nunca en el repositorio ni en un chat
+      - key: API_KEYS
+        sync: false
+      - key: CF_ACCOUNT_ID
+        sync: false
+      - key: CF_API_TOKEN
+        sync: false
+      - key: LANGSMITH_API_KEY
+        sync: false

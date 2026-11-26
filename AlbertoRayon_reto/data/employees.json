@@ -1,0 +1,57 @@
+[
+  {
+    "id": "EMP-0001",
+    "name": "Ana López",
+    "department": "Tecnología",
+    "role": "Analista de datos",
+    "start_date": "2019-03-04",
+    "status": "activo",
+    "email": "ana.lopez@ejemplo.test",
+    "phone": "55 5550 0101",
+    "rfc": "LOAA900101AB1"
+  },
+  {
+    "id": "EMP-0002",
+    "name": "Luis Pérez",
+    "department": "Ventas",
+    "role": "Ejecutivo de cuenta",
+    "start_date": "2021-07-19",
+    "status": "activo",
+    "email": "luis.perez@ejemplo.test",
+    "phone": "55 5550 0102",
+    "rfc": "PELL910202CD2"
+  },
+  {
+    "id": "EMP-0003",
+    "name": "Marta Ruiz",
+    "department": "Tecnología",
+    "role": "Desarrolladora",
+    "start_date": "2016-11-02",
+    "status": "baja",
+    "email": "marta.ruiz@ejemplo.test",
+    "phone": "55 5550 0103",
+    "rfc": "RUMM880303EF3"
+  },
+  {
+    "id": "EMP-0004",
+    "name": "Jorge Díaz",
+    "department": "Tecnología",
+    "role": "Líder técnico",
+    "start_date": "2022-01-10",
+    "status": "activo",
+    "email": "jorge.diaz@ejemplo.test",
+    "phone": "55 5550 0104",
+    "rfc": "DIJJ850404GH4"
+  },
+  {
+    "id": "EMP-0005",
+    "name": "Sofía Gómez",
+    "department": "Finanzas",
+    "role": "Contadora",
+    "start_date": "2020-05-25",
+    "status": "activo",
+    "email": "sofia.gomez@ejemplo.test",
+    "phone": "55 5550 0105",
+    "rfc": "GOSS920505IJ5"
+  }
+]

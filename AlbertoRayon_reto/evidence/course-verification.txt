@@ -1,0 +1,36 @@
+== python -m verification unit
+app/mcp_server.py             86     12    86%
+app/metrics.py                58      0   100%
+app/pii.py                    28      0   100%
+app/preflight.py              12      1    92%
+app/service.py               144      0   100%
+app/tracing.py                12      0   100%
+app/vacations.py              61      0   100%
+----------------------------------------------
+TOTAL                       1262     18    99%
+Required test coverage of 80% reached. Total coverage: 98.57%
+154 passed in 2.90s
+[OK] unit
+== python -m verification contract
+......................                                                   [100%]
+22 passed in 4.82s
+[OK] contract
+== python -m verification qa
+
+--------------------------------------------------------------------
+Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)
+
+[OK] qa
+== python -m verification e2e
+.{"ts": "2026-11-26T21:54:48.307365+00:00", "service": "hr-assistant", "event": "request", "request_id": "47f38418-e82c-4562-88fa-524d14e836eb", "client": "-", "channel": "http", "method": "GET", "path": "/", "status": 200, "latency_ms": 0.56}
+.{"ts": "2026-11-26T21:54:48.430848+00:00", "service": "hr-assistant", "event": "request", "request_id": "ddea6be5-33ae-483f-822c-d1e466014e8e", "client": "-", "channel": "http", "method": "GET", "path": "/", "status": 200, "latency_ms": 0.61}
+.{"ts": "2026-11-26T21:54:48.662893+00:00", "service": "hr-assistant", "event": "request", "request_id": "01e65674-89f6-4ecf-b566-9f2174931141", "client": "-", "channel": "http", "method": "GET", "path": "/", "status": 200, "latency_ms": 0.54}
+.{"ts": "2026-11-26T21:54:48.770606+00:00", "service": "hr-assistant", "event": "request", "request_id": "a4f8846a-9408-4329-8e12-9bd09213f023", "client": "-", "channel": "http", "method": "GET", "path": "/", "status": 200, "latency_ms": 0.67}
+.{"ts": "2026-11-26T21:54:48.975970+00:00", "service": "hr-assistant", "event": "request", "request_id": "2978ca2e-a1c1-4b78-8649-1b860c5fc2e4", "client": "-", "channel": "http", "method": "GET", "path": "/", "status": 200, "latency_ms": 0.63}
+.                                                                   [100%]
+6 passed in 1.41s
+[OK] e2e
+== python -m verification evaluate
+baseline  quality=100% cost_usd=0.001575 input_tokens=3837
+levers    quality=100% cost_usd=0.000224 input_tokens=3267
+[OK] evaluate
