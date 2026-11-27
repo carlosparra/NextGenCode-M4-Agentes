@@ -64,6 +64,18 @@ def test_response_cache_answers_repeated_questions_for_free(clock):
     assert service.ask("¿Quién es EMP-0004?")["cache"] == "miss"
 
 
+def test_every_agent_run_carries_the_request_context_for_tracing(clock):
+    from app import logs  # pylint: disable=import-outside-toplevel
+
+    token = logs.request_id_var.set("trace-me")
+    try:
+        assert logs.trace_metadata()["request_id"] == "trace-me"
+        service = HRService(make_settings(), clock=clock)
+        assert service.vacation_balance("EMP-0001")["request_id"] == "trace-me"
+    finally:
+        logs.request_id_var.reset(token)
+
+
 def test_response_cache_evicts_the_oldest_entry(clock):
     cache = ResponseCache(60, clock)
     for number in range(501):

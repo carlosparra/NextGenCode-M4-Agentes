@@ -18,7 +18,7 @@ from app.clock import SystemClock
 from app.config import Settings
 from app.directory import Directory
 from app.llm import FakeModel, GatewayModel, ModelCaller, Prices, Usage, choose_model
-from app.logs import JsonLogger, channel_var, client_var, request_id_var
+from app.logs import JsonLogger, request_id_var, trace_metadata
 from app.metrics import Metrics
 from app.vacations import VacationLedger
 
@@ -177,13 +177,6 @@ class HRService:  # pylint: disable=too-many-instance-attributes
         window = self.settings.history_window
         return guarded.text, clean_history[-window:] if window else [], pii_types
 
-    def _metadata(self) -> dict:
-        return {
-            "request_id": request_id_var.get(),
-            "client": client_var.get(),
-            "channel": channel_var.get(),
-        }
-
     def _finish(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self, result: AgentResult, route: str, pii_types: list[str],
         sizes: tuple[int, int], cache: str = "off",
@@ -251,7 +244,7 @@ class HRService:  # pylint: disable=too-many-instance-attributes
                     hit["reasoning"],
                 )
                 return self._finish(result, route, pii_types, sizes, "hit")
-        result = self._supervisor.run(masked, window, model, self._metadata())
+        result = self._supervisor.run(masked, window, model, trace_metadata())
         if self._cache.enabled and not result.stopped:
             self._cache.put(key, {
                 "agent": result.agent, "answer": result.answer,

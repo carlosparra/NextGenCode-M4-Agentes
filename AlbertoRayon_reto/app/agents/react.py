@@ -14,6 +14,7 @@ from app.agents.base import AgentResult, Tool
 from app.directory import NotFoundError
 from app.guards import CANARY
 from app.llm import TOOL_RESULT_PREFIX, ModelCaller, Usage
+from app.logs import trace_metadata
 from app.tracing import traced
 
 CAP_ANSWER = "No pude completar la respuesta. Intenta con una pregunta más concreta."
@@ -241,7 +242,7 @@ class ReactAgent:
                 "nudged": False, "stopped": False, "tools_used": [], "reasoning": [],
             },
             {"recursion_limit": 4 * self._settings.agent_max_steps + 4,
-             "run_name": self.name},
+             "run_name": self.name, "metadata": trace_metadata()},
         )
         return AgentResult(
             self.name, state["answer"], model, usage, state["tools_used"],

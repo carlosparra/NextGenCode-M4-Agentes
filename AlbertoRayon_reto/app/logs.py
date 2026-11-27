@@ -12,6 +12,19 @@ client_var: ContextVar[str] = ContextVar("client", default="-")
 channel_var: ContextVar[str] = ContextVar("channel", default="-")
 
 
+def trace_metadata() -> dict:
+    """Contexto de la petición, para los metadatos de una traza.
+
+    :return: ``request_id``, ``client`` y ``channel`` de la petición en curso
+    :rtype: dict
+    """
+    return {
+        "request_id": request_id_var.get(),
+        "client": client_var.get(),
+        "channel": channel_var.get(),
+    }
+
+
 class JsonLogger:
     """Escribe eventos en JSON con ``ts``, ``service``, ``event`` y ``request_id``."""
 

@@ -15,6 +15,7 @@ from app.agents.base import AgentResult
 from app.directory import Directory, NotFoundError
 from app.llm import (DRAFT_PREFIX, FACTS_END, FACTS_START, REVISE_PREFIX,
                      ModelCaller, Usage)
+from app.logs import trace_metadata
 from app.vacations import years_of_service
 
 MAX_REVISIONS = 2
@@ -209,7 +210,8 @@ class SummaryAgent:
         usage = Usage()
         state = self._build(model, usage).invoke(
             {"department": department, "revisions": 0, "reasoning": []},
-            {"recursion_limit": 6 + 2 * MAX_REVISIONS, "run_name": self.name},
+            {"recursion_limit": 6 + 2 * MAX_REVISIONS, "run_name": self.name,
+             "metadata": trace_metadata()},
         )
         reasoning = state["reasoning"] + [f"Revisiones: {state['revisions']}."]
         return AgentResult(
