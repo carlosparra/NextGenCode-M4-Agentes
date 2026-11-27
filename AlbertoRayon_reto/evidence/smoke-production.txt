@@ -1,0 +1,11 @@
+$ python scripts/smoke.py https://hr-assistant-albertorayon.onrender.com   (claves por permiso en variables de entorno)
+  [OK] GET /health -> 200 (esperado 200)
+  [OK] GET /docs -> 200 (esperado 200)
+  [OK] POST /ask sin clave -> 401 (esperado 401)
+  [OK] POST /ask con clave -> 200 (esperado 200)
+  [OK] POST /ask que pide datos protegidos -> 400 (esperado 400)
+  [OK] GET /metrics con clave de métricas -> 200 (esperado 200)
+  [OK] POST /ask con clave de métricas -> 403 (esperado 403)
+  [OK] POST /mcp tools/list con clave MCP -> 200 (esperado 200)
+  [OK] POST /mcp sin clave -> 401 (esperado 401)
+código de salida: 0

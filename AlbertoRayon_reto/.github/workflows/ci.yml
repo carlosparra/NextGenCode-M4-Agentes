@@ -1,0 +1,46 @@
+# Pipeline del producto. GitHub solo ejecuta workflows de la raíz del repositorio:
+# aquí queda como referencia y se activa al copiarlo a .github/workflows/ en la raíz
+# o al publicar la carpeta como repositorio propio.
+name: ci
+on: [push, pull_request]
+defaults:
+  run:
+    working-directory: AlbertoRayon_reto
+jobs:
+  style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: >
+          python -m pylint app tests --max-line-length=88 --fail-under=10
+          --disable=missing-function-docstring,redefined-outer-name,too-few-public-methods
+  unit:
+    needs: style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: python -m pytest -q tests --cov=app --cov-fail-under=90
+  e2e:
+    needs: unit
+    runs-on: ubuntu-latest
+    env:
+      E2E_API_KEY: ci-only-key-0123456789
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
+      - run: python scripts/run_e2e.py
+  docker:
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t hr-assistant .

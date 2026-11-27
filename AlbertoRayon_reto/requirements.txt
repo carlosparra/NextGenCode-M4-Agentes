@@ -1,0 +1,8 @@
+anyio==4.16.0
+fastapi==0.165.0
+httpx==0.29.0
+langgraph==1.2.24
+langsmith==0.16.2
+mcp==2.3.0
+pydantic==2.14.4
+uvicorn==0.54.0

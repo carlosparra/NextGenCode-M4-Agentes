@@ -1,0 +1,22 @@
+Servicio publicado: https://hr-assistant-albertorayon.onrender.com
+
+GET /health -> {'status': 'ok', 'pid': 1, 'environment': 'production', 'model_provider': 'workers', 'tracing': True} 
+
+POST /ask [200] ¿Quién es EMP-0004?
+   EMP-0004 es Jorge Díaz, Líder técnico del departamento de Tecnología.
+   agente=directory_agent modelo=llama-3.1-8b-instruct-fast pasos=0 costo_usd=0.0 pii=[] request_id=prod-demo-0
+POST /ask [200] ¿Cuántas vacaciones le quedan a EMP-0001?
+   Ana López (EMP-0001) tiene 7 años de servicio: le corresponden 22 días, ha tomado 8 y le quedan 14 en el periodo 2026-03-04 a 2027-03-04. Cálculo según el artículo 76 de la LFT.
+   agente=vacation_agent modelo=llama-3.1-8b-instruct-fast pasos=1 costo_usd=3.5406e-05 pii=[] request_id=prod-demo-1
+POST /ask [200] Resume el departamento de Tecnología
+   El departamento de Tecnología cuenta con 2 personas activas y 1 de baja. Las personas activas son Ana López, quien se desempeña como Analista de datos, y Jorge Díaz, quien ocupa el cargo de Líder técnico. La antigüedad promedio de
+   agente=summary_agent modelo=llama-3.3-70b-instruct-fp8-fast pasos=2 costo_usd=0.00055495 pii=[] request_id=prod-demo-2
+POST /ask [200] Mi correo es ana@ejemplo.test, ¿quién es EMP-0005?
+   EMP-0005 es Sofía Gómez, Contadora, del departamento Finanzas.
+   agente=directory_agent modelo=llama-3.1-8b-instruct-fast pasos=2 costo_usd=7.1232e-05 pii=['EMAIL'] request_id=prod-demo-3
+
+MCP remoto, herramientas: ['ask_hr', 'vacation_balance', 'department_summary']
+MCP vacation_balance(EMP-0004): {'entitled_days': 18, 'taken_days': 6, 'remaining_days': 12, 'agent': 'vacation_agent', 'reasoning': ['Necesito verificar su saldo de vacaciones.', 'La respuesta es el resultado verificado de get_vacation_balance.']}
+MCP department_summary(Finanzas): El departamento de Finanzas cuenta con 1 persona activa y 0 de baja. La persona activa es Sofía Gómez, quien desempeña el cargo de Contadora. La antigüedad promedio de las personas activas en el depar | ['Crítica: sin observaciones.', 'Revisiones: 0.']
+
+GET /metrics -> {"requests": 167, "error_rate": 0.0, "latency_ms": {"p50": 0.73, "p95": 4.23}, "tokens": {"input": 3551, "output": 477}, "cost_usd": 0.00100445, "baseline_cost_usd": 0.00211512, "savings_pct": 52.5, "slo": {"p95_ms_target": 2000.0, "met": true}}

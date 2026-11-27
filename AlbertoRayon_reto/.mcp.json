@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "hr-assistant": {
+      "command": "uv",
+      "args": [
+        "run", "--python", "3.12", "--with-requirements", "requirements.txt",
+        "python", "-m", "app.mcp_server"
+      ],
+      "env": {"MODEL_PROVIDER": "fake"}
+    }
+  }
+}

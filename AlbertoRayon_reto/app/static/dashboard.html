@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HR Assistant: tablero</title>
+<style nonce="__NONCE__">
+  :root { --ink: #1c2530; --muted: #5d6b7a; --line: #d5dbe3; --accent: #0b5cad;
+          --good: #1a7f37; --bad: #a4262c; --soft: #f3f6fa; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, sans-serif; color: var(--ink); }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  h2 { font-size: 1rem; margin: 28px 0 8px; }
+  p.lead { color: var(--muted); margin: 0 0 16px; }
+  .row { display: flex; gap: 8px; max-width: 520px; }
+  input { flex: 1; padding: 10px 12px; border: 1px solid var(--line);
+          border-radius: 6px; font-size: 1rem; }
+  button { padding: 10px 18px; border: 0; border-radius: 6px; background: var(--accent);
+           color: #fff; font-size: 1rem; cursor: pointer; }
+  #status { margin-top: 10px; font-size: 0.85rem; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+           gap: 12px; margin-top: 16px; }
+  .tile { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .tile .label { font-size: 0.8rem; color: var(--muted); }
+  .tile .value { font-size: 1.5rem; font-weight: 600; margin-top: 4px;
+                 font-variant-numeric: tabular-nums; }
+  .good { color: var(--good); } .bad { color: var(--bad); }
+  table { border-collapse: collapse; width: 100%; max-width: 520px; }
+  td { padding: 6px 8px; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+  td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Tablero del HR Assistant</h1>
+  <p class="lead">Métricas de este proceso, actualizadas cada 5 segundos.
+    Necesita una clave con el permiso <code>metrics</code>. <a href="/">Volver</a></p>
+  <div class="row">
+    <input id="api-key" type="password" autocomplete="off" placeholder="Clave de métricas">
+    <button id="load" type="button">Ver</button>
+  </div>
+  <div id="status">Escribe la clave y pulsa Ver.</div>
+  <div class="tiles" id="tiles"></div>
+  <h2>Eventos por tipo</h2>
+  <table><tbody id="counters"></tbody></table>
+</main>
+<script nonce="__NONCE__">
+  const keyInput = document.getElementById("api-key");
+  const status = document.getElementById("status");
+  const tiles = document.getElementById("tiles");
+  const counters = document.getElementById("counters");
+  let timer = null;
+  keyInput.value = sessionStorage.getItem("hr-metrics-key") || "";
+
+  function tile(label, value, tone) {
+    const box = document.createElement("div");
+    box.className = "tile";
+    const name = document.createElement("div");
+    name.className = "label";
+    name.textContent = label;
+    const number = document.createElement("div");
+    number.className = "value" + (tone ? " " + tone : "");
+    number.textContent = value;
+    box.append(name, number);
+    tiles.appendChild(box);
+  }
+
+  function render(data) {
+    tiles.replaceChildren();
+    tile("Peticiones", data.requests);
+    tile("Tasa de error", (data.error_rate * 100).toFixed(1) + " %",
+         data.error_rate > 0 ? "bad" : "good");
+    tile("Latencia p50", data.latency_ms.p50 + " ms");
+    tile("Latencia p95", data.latency_ms.p95 + " ms");
+    tile("SLO p95 < " + data.slo.p95_ms_target + " ms",
+         data.slo.met ? "Cumple" : "No cumple", data.slo.met ? "good" : "bad");
+    tile("Tokens de entrada", data.tokens.input);
+    tile("Tokens de salida", data.tokens.output);
+    tile("Costo acumulado", "$" + data.cost_usd.toFixed(6));
+    tile("Costo sin optimizar", "$" + data.baseline_cost_usd.toFixed(6));
+    tile("Ahorro", data.savings_pct + " %", data.savings_pct > 0 ? "good" : "");
+    counters.replaceChildren();
+    Object.entries(data.counters).forEach(([name, value]) => {
+      const row = document.createElement("tr");
+      const first = document.createElement("td");
+      first.textContent = name;
+      const second = document.createElement("td");
+      second.textContent = value;
+      row.append(first, second);
+      counters.appendChild(row);
+    });
+  }
+
+  async function refresh() {
+    try {
+      const response = await fetch("/metrics", {headers: {"X-API-Key": keyInput.value}});
+      if (response.status === 401) { status.textContent = "Clave inválida"; return; }
+      if (response.status === 403) {
+        status.textContent = "Esta clave no tiene el permiso metrics"; return;
+      }
+      const data = await response.json();
+      render(data);
+      status.textContent = "Proceso " + data.pid + " | última lectura " +
+        new Date().toLocaleTimeString();
+    } catch (error) {
+      status.textContent = "No se pudo leer /metrics";
+    }
+  }
+
+  document.getElementById("load").addEventListener("click", () => {
+    sessionStorage.setItem("hr-metrics-key", keyInput.value);
+    refresh();
+    clearInterval(timer);
+    timer = setInterval(refresh, 5000);
+  });
+</script>
+</body>
+</html>

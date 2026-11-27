@@ -1,0 +1,52 @@
+Trazas leídas de LangSmith (proyecto hr-assistant) después de tres preguntas reales.
+Modelo: Cloudflare Workers AI. HIDE_INPUTS=true y HIDE_OUTPUTS=true.
+
+POST /ask request_id=ls-evidence-1795730821-0 -> 200 agente=directory_agent pasos=1 costo_usd=3.4461e-05
+   respuesta: Solo puedo ayudar con temas de Recursos Humanos: empleados, vacaciones y departamentos.
+POST /ask request_id=ls-evidence-1795730821-1 -> 200 agente=vacation_agent pasos=1 costo_usd=3.5406e-05
+   respuesta: Ana López (EMP-0001) tiene 7 años de servicio: le corresponden 22 días, ha tomado 8 y le quedan 14 en el periodo 2026-03-04 a 2027-03-04. Cálculo según el artíc
+POST /ask request_id=ls-evidence-1795730821-2 -> 200 agente=summary_agent pasos=2 costo_usd=0.000591584
+   respuesta: El departamento de Tecnología cuenta con 2 personas activas y 1 de baja. Las personas activas son Ana López, quien se desempeña como Analista de datos, y Jorge 
+
+Traza request_id=ls-evidence-1795730821-0 client=portal channel=http
+  entradas guardadas: {}   salidas guardadas: None
+  [chain] hr_supervisor
+    [chain] supervisor
+      [chain] RunnableCallable
+    [chain] directory_agent
+      [chain] directory_agent
+        [chain] model
+          [llm] model_call  tokens=433+39 costo_usd=0.000034461
+          [chain] after_model
+
+Traza request_id=ls-evidence-1795730821-1 client=portal channel=http
+  entradas guardadas: {}   salidas guardadas: None
+  [chain] hr_supervisor
+    [chain] supervisor
+      [chain] RunnableCallable
+    [chain] vacation_agent
+      [chain] vacation_agent
+        [chain] model
+          [llm] model_call  tokens=454+39 costo_usd=0.000035406
+          [chain] after_model
+        [chain] tools
+          [tool] get_vacation_balance
+          [chain] after_tools
+
+Traza request_id=ls-evidence-1795730821-2 client=portal channel=http
+  entradas guardadas: {}   salidas guardadas: None
+  [chain] hr_supervisor
+    [chain] supervisor
+      [chain] RunnableCallable
+    [chain] summary_agent
+      [chain] summary_agent
+        [chain] gather_facts
+        [chain] draft
+          [llm] model_call  tokens=213+100 costo_usd=0.000287709
+        [chain] critique
+          [chain] after_critique
+        [chain] revise
+          [llm] model_call  tokens=322+93 costo_usd=0.000303875
+        [chain] critique
+          [chain] after_critique
+        [chain] finalize

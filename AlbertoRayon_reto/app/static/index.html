@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HR Assistant</title>
+<style nonce="__NONCE__">
+  :root { --ink: #1c2530; --muted: #5d6b7a; --line: #d5dbe3; --accent: #0b5cad;
+          --soft: #f3f6fa; --error: #a4262c; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, sans-serif; color: var(--ink);
+         background: #fff; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  p.lead { color: var(--muted); margin: 0 0 20px; }
+  label { display: block; font-size: 0.85rem; color: var(--muted); margin: 12px 0 4px; }
+  input { width: 100%; padding: 10px 12px; border: 1px solid var(--line);
+          border-radius: 6px; font-size: 1rem; }
+  .row { display: flex; gap: 8px; }
+  button { padding: 10px 18px; border: 0; border-radius: 6px; background: var(--accent);
+           color: #fff; font-size: 1rem; cursor: pointer; }
+  button:disabled { opacity: 0.6; cursor: wait; }
+  #conversation { margin-top: 24px; display: grid; gap: 12px; }
+  .turn { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .turn .q { font-weight: 600; margin-bottom: 6px; }
+  .turn .meta { margin-top: 8px; font-size: 0.8rem; color: var(--muted);
+                overflow-wrap: anywhere; }
+  .turn .why { margin-top: 6px; font-size: 0.85rem; color: var(--muted);
+               background: var(--soft); border-radius: 6px; padding: 6px 8px; }
+  .turn.error { border-color: var(--error); color: var(--error); }
+  nav { margin-top: 28px; font-size: 0.9rem; }
+  nav a { color: var(--accent); margin-right: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>HR Assistant</h1>
+  <p class="lead">Pregunta por un empleado (EMP-0004), sus vacaciones o el resumen
+    de un departamento.</p>
+  <label for="api-key">Clave de acceso</label>
+  <input id="api-key" data-testid="api-key" type="password" autocomplete="off"
+         placeholder="Tu clave">
+  <label for="question">Pregunta</label>
+  <div class="row">
+    <input id="question" data-testid="question" type="text" maxlength="2000"
+           placeholder="¿Cuántas vacaciones le quedan a EMP-0001?">
+    <button id="send" data-testid="send" type="button">Enviar</button>
+  </div>
+  <div id="conversation" data-testid="answer" aria-live="polite"></div>
+  <nav><a href="/dashboard">Tablero de métricas</a><a href="/docs">API (Swagger)</a></nav>
+</main>
+<script nonce="__NONCE__">
+  const keyInput = document.getElementById("api-key");
+  const questionInput = document.getElementById("question");
+  const sendButton = document.getElementById("send");
+  const conversation = document.getElementById("conversation");
+  const history = [];
+  keyInput.value = sessionStorage.getItem("hr-api-key") || "";
+
+  function line(parent, className, text) {
+    const element = document.createElement("div");
+    element.className = className;
+    element.textContent = text;
+    parent.appendChild(element);
+    return element;
+  }
+
+  function errorMessage(status, response) {
+    if (status === 401) return "Clave inválida";
+    if (status === 403) return "Tu clave no tiene permiso para preguntar";
+    if (status === 429) {
+      const seconds = response.headers.get("Retry-After") || "unos";
+      return "Demasiadas preguntas; espera " + seconds + " segundos";
+    }
+    if (status === 400) return "La pregunta fue bloqueada por seguridad";
+    if (status === 422) return "Escribe una pregunta de hasta 2000 caracteres";
+    if (status === 502) return "El modelo no responde. Intenta más tarde";
+    return "Ocurrió un error. Intenta de nuevo";
+  }
+
+  async function send() {
+    const question = questionInput.value;
+    const turn = document.createElement("div");
+    turn.className = "turn";
+    line(turn, "q", question || "(pregunta vacía)");
+    conversation.appendChild(turn);
+    sendButton.disabled = true;
+    sessionStorage.setItem("hr-api-key", keyInput.value);
+    try {
+      const response = await fetch("/ask", {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-API-Key": keyInput.value},
+        body: JSON.stringify({question: question, history: history}),
+      });
+      const requestId = response.headers.get("X-Request-ID") || "";
+      if (!response.ok) {
+        turn.classList.add("error");
+        line(turn, "a", errorMessage(response.status, response));
+        line(turn, "meta", "request_id: " + requestId);
+        return;
+      }
+      const body = await response.json();
+      line(turn, "a", body.answer);
+      if (body.reasoning.length) {
+        line(turn, "why", "Razonamiento: " + body.reasoning.join(" "));
+      }
+      const tools = body.tools_used.length ? body.tools_used.join(", ") : "ninguna";
+      const masked = body.pii_masked.length
+        ? " | datos ocultados: " + body.pii_masked.join(", ") : "";
+      line(turn, "meta", "agente: " + body.agent + " | herramientas: " + tools +
+        " | modelo: " + body.model + " | costo: $" + body.cost_usd.toFixed(8) +
+        masked + " | request_id: " + body.request_id);
+      history.push({role: "user", content: question});
+      history.push({role: "assistant", content: body.answer});
+      questionInput.value = "";
+    } catch (error) {
+      turn.classList.add("error");
+      line(turn, "a", "No se pudo conectar con el servicio");
+    } finally {
+      sendButton.disabled = false;
+      questionInput.focus();
+    }
+  }
+
+  sendButton.addEventListener("click", send);
+  questionInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") send();
+  });
+</script>
+</body>
+</html>
