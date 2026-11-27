@@ -12,6 +12,7 @@ capacidades se ofrecen por una API REST, un portal web y un servidor MCP.
 | Servidor MCP | HTTP en `/mcp` y stdio con `python -m app.mcp_server` |
 | Documentación | [`doc/`](doc/): arquitectura, ADR, observabilidad, costos, seguridad, despliegue |
 | Evidencia | [`evidence/`](evidence/): salidas reales de pruebas, costos y carga |
+| Video de demostración | <https://youtu.be/QCHlp6ceZJU> (4 minutos) |
 
 **Publicado en Render:** <https://hr-assistant-albertorayon.onrender.com> (`/health`, `/docs`, `/dashboard`, `/mcp`). El plan
 gratuito duerme el servicio tras 15 minutos sin uso: la primera petición tarda cerca
@@ -170,7 +171,7 @@ SMOKE_API_KEY=... SMOKE_MCP_KEY=... SMOKE_METRICS_KEY=... \
 
 | Aspecto | Resultado | Evidencia |
 | --- | --- | --- |
-| Pruebas | 156 unitarias, BDD y MCP con 98 % de cobertura; 6 de navegador; pylint 10/10 | [`evidence/tests.txt`](evidence/tests.txt) |
+| Pruebas | 158 unitarias, BDD y MCP con 99 % de cobertura; 6 de navegador; pylint 10/10 | [`evidence/tests.txt`](evidence/tests.txt) |
 | Contrato del curso (`sesion04/verification`) | `unit`, `contract`, `qa`, `e2e` y `evaluate` en OK | [`evidence/course-verification.txt`](evidence/course-verification.txt) |
 | Costos con el modelo real | 76.1 % menos que la línea base, con la misma calidad (100 %) | [`doc/costs.md`](doc/costs.md) |
 | Trazas | Árbol completo en LangSmith, con tokens y costo, sin texto | [`evidence/langsmith.txt`](evidence/langsmith.txt) |

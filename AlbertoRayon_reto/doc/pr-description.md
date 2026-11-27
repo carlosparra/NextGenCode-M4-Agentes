@@ -63,7 +63,7 @@ por la guarda de salida, y todo queda en el log, las métricas y la traza.
 
 ## Resultados medidos
 
-- Pruebas: 156 unitarias, BDD y MCP con 98 % de cobertura; 6 de navegador; pylint
+- Pruebas: 158 unitarias, BDD y MCP con 99 % de cobertura; 6 de navegador; pylint
   10/10 (`evidence/tests.txt`).
 - Verificaciones del curso (`sesion04/verification`): `unit`, `contract` (22
   pruebas), `qa`, `e2e` y `evaluate` en OK (`evidence/course-verification.txt`).
@@ -102,7 +102,9 @@ uso; la primera petición después tarda cerca de un minuto.
 
 ## Video de demostración
 
-PENDIENTE (enlace al video de 3 a 5 minutos).
+<https://youtu.be/QCHlp6ceZJU> (4:04). Muestra el portal publicado, la protección de datos personales,
+Claude Code como host MCP llamando a las herramientas en vivo, la traza en LangSmith,
+el tablero de métricas, los costos y las pruebas.
 
 ## Notas adicionales
 
