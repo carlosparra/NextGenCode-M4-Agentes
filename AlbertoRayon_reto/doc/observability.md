@@ -48,6 +48,8 @@ grep '"request_id": "demo-123"' servicio.log | jq -c '{event, action, agent, too
 | De negocio | Corridas por agente y por modelo, aciertos de caché |
 | De seguridad | `auth_failed`, `scope_denied`, `rate_limited`, `guard_blocked`, `pii_masked`, `output_guard_flag` |
 
+- Los sondeos de `/health` de la plataforma no cuentan como peticiones ni se
+  registran: son cientos por hora y falsearían la latencia.
 - El p95 importa más que el promedio: dice cómo le va al 5 % con peor experiencia.
   `slo.met` es verdadero si el p95 está por debajo de `SLO_P95_MS`.
 - `baseline_cost_usd` es lo que habrían costado los mismos tokens en el modelo

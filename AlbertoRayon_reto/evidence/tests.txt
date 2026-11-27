@@ -1,7 +1,7 @@
 $ pytest tests --cov=app --cov-fail-under=90
-........................................................................ [ 46%]
-........................................................................ [ 92%]
-............                                                             [100%]
+........................................................................ [ 45%]
+........................................................................ [ 91%]
+.............                                                            [100%]
 ================================ tests coverage ================================
 _______________ coverage: platform linux, python 3.12.16-final-0 _______________
 
@@ -20,7 +20,7 @@ app/directory.py              53      0   100%
 app/guards.py                 35      0   100%
 app/llm.py                   141      0   100%
 app/logs.py                   18      0   100%
-app/main.py                  158      0   100%
+app/main.py                  161      0   100%
 app/mcp_server.py             86     12    86%
 app/metrics.py                58      0   100%
 app/pii.py                    28      0   100%
@@ -29,14 +29,14 @@ app/service.py               144      0   100%
 app/tracing.py                12      0   100%
 app/vacations.py              61      0   100%
 ----------------------------------------------
-TOTAL                       1275     18    99%
+TOTAL                       1278     18    99%
 Required test coverage of 90% reached. Total coverage: 98.59%
-156 passed in 2.78s
+157 passed in 2.88s
 
 $ pylint app tests --max-line-length=88 (con las excepciones del curso)
--------------------------------------------------------------------
-Your code has been rated at 10.00/10 (previous run: 9.99/10, +0.01)
+--------------------------------------------------------------------
+Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)
 
 
 $ python scripts/run_e2e.py
-6 passed in 1.34s
+6 passed in 1.44s

@@ -13,6 +13,10 @@ capacidades se ofrecen por una API REST, un portal web y un servidor MCP.
 | Documentación | [`doc/`](doc/): arquitectura, ADR, observabilidad, costos, seguridad, despliegue |
 | Evidencia | [`evidence/`](evidence/): salidas reales de pruebas, costos y carga |
 
+**Publicado en Render:** <https://hr-assistant-albertorayon.onrender.com> (`/health`, `/docs`, `/dashboard`, `/mcp`). El plan
+gratuito duerme el servicio tras 15 minutos sin uso: la primera petición tarda cerca
+de un minuto.
+
 ## Arquitectura en una imagen
 
 ```mermaid
@@ -170,6 +174,7 @@ SMOKE_API_KEY=... SMOKE_MCP_KEY=... SMOKE_METRICS_KEY=... \
 | Contrato del curso (`sesion04/verification`) | `unit`, `contract`, `qa`, `e2e` y `evaluate` en OK | [`evidence/course-verification.txt`](evidence/course-verification.txt) |
 | Costos con el modelo real | 76.1 % menos que la línea base, con la misma calidad (100 %) | [`doc/costs.md`](doc/costs.md) |
 | Trazas | Árbol completo en LangSmith, con tokens y costo, sin texto | [`evidence/langsmith.txt`](evidence/langsmith.txt) |
+| Producción | Prueba de humo en OK y preguntas reales contra Render, por API y por MCP | [`evidence/production.txt`](evidence/production.txt) |
 | Concurrencia | 400 peticiones, 40 en paralelo, todas con `200` | [`evidence/load.txt`](evidence/load.txt) |
 | Seguridad | 20 controles, cada uno con su código y su prueba | [`doc/security.md`](doc/security.md) |
 

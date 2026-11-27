@@ -28,6 +28,7 @@ STATIC = Path(__file__).resolve().parent / "static"
 REQUEST_ID = re.compile(r"^[\w.:-]{1,64}$")
 SCOPE_BY_PATH = {"/ask": "ask", "/metrics": "metrics", "/metrics/prometheus": "metrics"}
 RATE_LIMITED = {"ask", "mcp"}
+HEALTH_PATH = "/health"
 PAGES = {"/": "index.html", "/dashboard": "dashboard.html"}
 API_KEY_HEADER = APIKeyHeader(
     name="X-API-Key", auto_error=False, description="Clave del cliente"
@@ -164,6 +165,9 @@ def create_app(  # pylint: disable=too-many-locals,too-many-statements
         response.headers["Referrer-Policy"] = "no-referrer"
         if path not in PAGES and not path.startswith("/docs"):
             response.headers["Cache-Control"] = "no-store"
+        if path == HEALTH_PATH and response.status_code == 200:
+            # Los sondeos de la plataforma no son tráfico: no cuentan ni se registran
+            return response
         latency = (time.perf_counter() - started) * 1000
         service.metrics.record_request(response.status_code, latency)
         service.logger.event(

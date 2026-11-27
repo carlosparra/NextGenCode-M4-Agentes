@@ -90,9 +90,15 @@ uv run --env-file .env uvicorn app.main:app --port 8000
 
 ## Sistema publicado
 
-- URL: PENDIENTE
-- Health check: PENDIENTE (`/health`)
-- API: PENDIENTE (`/docs`)
+- Portal: <https://hr-assistant-albertorayon.onrender.com>
+- Health check: <https://hr-assistant-albertorayon.onrender.com/health>
+- API (Swagger): <https://hr-assistant-albertorayon.onrender.com/docs>
+- Tablero: <https://hr-assistant-albertorayon.onrender.com/dashboard>
+- MCP remoto: `https://hr-assistant-albertorayon.onrender.com/mcp`
+
+Prueba de humo y preguntas reales contra producción: `evidence/smoke-production.txt`
+y `evidence/production.txt`. El plan gratuito duerme el servicio tras 15 minutos sin
+uso; la primera petición después tarda cerca de un minuto.
 
 ## Video de demostración
 

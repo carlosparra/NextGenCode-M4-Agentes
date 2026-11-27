@@ -19,6 +19,13 @@ def test_health_is_public_and_says_ok(client):
     assert uuid.UUID(response.headers["X-Request-ID"])
 
 
+def test_health_probes_do_not_distort_the_metrics(client, capsys):
+    for _ in range(5):
+        client.get("/health")
+    assert client.get("/metrics").json()["requests"] == 0
+    assert '"path": "/health"' not in capsys.readouterr().out
+
+
 def test_ask_returns_the_full_contract(client):
     response = client.post("/ask", json=QUESTION, headers={"X-Request-ID": "demo-123"})
     body = response.json()
